@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ############################## set up the build processs ##############################
 # do this so apt has a dns resolver
 mkdir -p /run/systemd/resolve
@@ -66,7 +68,7 @@ usermod -aG sudo dexi
 curl --output /tmp/get-docker.sh https://get.docker.com
 chmod +x /tmp/get-docker.sh
 /tmp/get-docker.sh
-groupadd docker
+# groupadd docker
 usermod -aG docker dexi
 #######################################################################################
 
@@ -92,6 +94,7 @@ echo 'neofetch' >> /home/dexi/.bashrc
 ################################### clone and build dexi repo #########################
 mkdir -p /home/dexi/dexi_ws/src
 git clone -b develop https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
+git clone https://github.com/micro-ROS/micro_ros_msgs.git /home/dexi/dexi_ws/src/micro_ros_msgs
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
@@ -101,11 +104,13 @@ source /opt/ros/humble/setup.bash
 colcon build --packages-select dexi_msgs
 colcon build --packages-select led_msgs
 colcon build --packages-select px4_msgs
+colcon build --packages-select micro_ros_msgs
 colcon build --packages-select micro_ros_agent
 colcon build --packages-select dexi_py
 #######################################################################################
 
 ################################### python led packages ###############################
+apt-get install -y python3 python3-pip
 pip3 install rpi_ws281x
 pip3 install adafruit-blinka
 pip3 install adafruit-circuitpython-neopixel
@@ -123,7 +128,7 @@ apt install -y iw wireless-tools
 git clone https://github.com/Autodrop3d/raspiApWlanScripts.git /home/dexi/wifi_utilities
 #######################################################################################
 
-chown -R dexi:dexi /home/dexi 
+chown -R dexi:dexi /home/dexi
 
 ############################### provision runonce daemon ##############################
 # creates a job that only runs once (AKA on first boot)
