@@ -32,8 +32,8 @@ apt-get update -y &&  apt-get upgrade -y
    echo '# Disable Gigabit Ethernet, it can only do 100Mbps'
    echo 'dtoverlay=cm4-disable-gigabit-ethernet'
    echo ""
-   echo 'dtoverlay=imx708,cam0'
-   echo 'dtoverlay=imx708,cam1'
+   echo 'dtoverlay=imx219,cam0'
+   echo 'dtoverlay=imx219,cam1'
    echo ""
    echo 'dtoverlay=gpio-fan,gpiopin=19'
    echo ""
@@ -77,6 +77,7 @@ apt update
 
 # Install ROS2 humble
 apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server -y
+echo "source /opt/ros/humble/setup.bash" >> /home/dexi/.bashrc
 rosdep init
 #######################################################################################
 
@@ -86,13 +87,17 @@ echo 'neofetch' >> /home/dexi/.bashrc
 #######################################################################################
 
 ################################### clone dexi repo ###################################
-git clone https://github.com/DroneBlocks/dexi.git /home/dexi/dexi
+mkdir -p /home/dexi/dexi_ws/src
+git clone -b develop https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
+echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
 # cd /home/dexi/dexi
 # git checkout develop
 #######################################################################################
 
 #################################### clone ark repo ###################################
-git clone https://github.com/ARK-Electronics/ark_companion_scripts.git /home/dexi/ark_companion_scripts
+git clone https://github.com/DroneBlocks/ark_companion_scripts.git /home/dexi/ark_companion_scripts
+cd /home/dexi/ark_companion_scripts
+./setup.sh
 #######################################################################################
 
 ################################### clone wifi repo ###################################
