@@ -37,6 +37,9 @@ apt-get update -y &&  apt-get upgrade -y
    echo ""
    echo 'dtoverlay=gpio-fan,gpiopin=19'
    echo ""
+   echo 'Disable SPI for now because it renders /dev/ttyAMA2 useless, which is where we get serial telem for ROS2'
+   echo 'dtparam=spi=off'
+   echo ""
 } >> /boot/firmware/config.txt
 
 #######################################################################################
