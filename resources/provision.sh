@@ -89,14 +89,27 @@ apt-get install -y neofetch
 echo 'neofetch' >> /home/dexi/.bashrc
 #######################################################################################
 
-################################### clone dexi repo ###################################
+################################### clone and build dexi repo #########################
 mkdir -p /home/dexi/dexi_ws/src
 git clone -b develop https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
-# cd /home/dexi/dexi
-# git checkout develop
+
+cd /home/dexi/dexi_ws
+source /opt/ros/humble/setup.bash
+colcon build --packages-select dexi_msgs
+colcon build --packages-select led_msgs
+colcon build --packages-select px4_msgs
+colcon build --packages-select micro_ros_agent
+colcon build --packages-select dexi_py
+#######################################################################################
+
+################################### python led packages ###############################
+pip3 install rpi_ws281x
+pip3 install adafruit-blinka
+pip3 install adafruit-circuitpython-neopixel
+pip3 install adafruit-circuitpython-led-animation
 #######################################################################################
 
 #################################### clone ark repo ###################################
@@ -108,8 +121,9 @@ cd /home/dexi/ark_companion_scripts
 ################################### clone wifi repo ###################################
 apt install -y iw wireless-tools
 git clone https://github.com/Autodrop3d/raspiApWlanScripts.git /home/dexi/wifi_utilities
-
 #######################################################################################
+
+chown -R dexi:dexi /home/dexi 
 
 ############################### provision runonce daemon ##############################
 # creates a job that only runs once (AKA on first boot)
