@@ -8,6 +8,10 @@ DEXI_SSID="dexi_$PARTIAL_MAC"
 #setup the wifi stuff but use placeholders for first boot
 /home/dexi/wifi_utilities/setup_wlan_and_AP_modes.sh -d -s XXXXXXXX -p XXXXXXXX  -a $DEXI_SSID -r droneblocks
 
+# Change dexi directory permissions
+chown -R dexi:dexi /home/dexi
+
+# Boot faster
 systemctl disable systemd-networkd-wait-online.service
 systemctl mask systemd-networkd-wait-online.service
 
