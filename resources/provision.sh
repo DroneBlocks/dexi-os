@@ -79,9 +79,10 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-a
 apt update
 
 # Install ROS2 humble
-apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server -y
+apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server ros-humble-topic-tools -y
 echo "source /opt/ros/humble/setup.bash" >> /home/dexi/.bashrc
 rosdep init
+rosdep update
 #######################################################################################
 
 ################################## install neofetch ###################################
@@ -98,18 +99,12 @@ echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
 
 cd /home/dexi/dexi_ws
 source /opt/ros/humble/setup.bash
+rosdep install --from-paths src -y --ignore-src
 colcon build --packages-select dexi_msgs
 colcon build --packages-select led_msgs
 colcon build --packages-select px4_msgs
 colcon build --packages-select micro_ros_agent
 colcon build --packages-select dexi_py
-#######################################################################################
-
-################################### python led packages ###############################
-pip3 install rpi_ws281x
-pip3 install adafruit-blinka
-pip3 install adafruit-circuitpython-neopixel
-pip3 install adafruit-circuitpython-led-animation
 #######################################################################################
 
 #################################### clone ark repo ###################################
@@ -123,7 +118,12 @@ apt install -y iw wireless-tools
 git clone https://github.com/Autodrop3d/raspiApWlanScripts.git /home/dexi/wifi_utilities
 #######################################################################################
 
-chown -R dexi:dexi /home/dexi 
+################################### python led packages ###############################
+pip3 install rpi_ws281x
+pip3 install adafruit-blinka
+pip3 install adafruit-circuitpython-neopixel
+pip3 install adafruit-circuitpython-led-animation
+#######################################################################################
 
 ############################### provision runonce daemon ##############################
 # creates a job that only runs once (AKA on first boot)
