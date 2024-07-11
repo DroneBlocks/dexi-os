@@ -4,6 +4,8 @@
 # do this so apt has a dns resolver
 mkdir -p /run/systemd/resolve
 echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
+# fix hostname
+echo '127.0.0.1 ubuntu' >> /etc/hosts
 #######################################################################################
 
 #################################### update the OS ####################################
