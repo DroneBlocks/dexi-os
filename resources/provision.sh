@@ -83,6 +83,7 @@ apt update
 # Install ROS2 humble
 apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server ros-humble-topic-tools -y
 echo "source /opt/ros/humble/setup.bash" >> /home/dexi/.bashrc
+echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 rosdep init
 rosdep update
 #######################################################################################
@@ -98,6 +99,7 @@ git clone -b develop https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
+echo "source /home/dexi/dexi_ws/install/setup.bash" >> /root/.bashrc
 
 cd /home/dexi/dexi_ws
 source /opt/ros/humble/setup.bash
@@ -107,6 +109,8 @@ colcon build --packages-select led_msgs
 colcon build --packages-select px4_msgs
 colcon build --packages-select micro_ros_agent
 colcon build --packages-select dexi_py
+colcon build --packages-select droneblocks
+colcon build --packages-select dexi
 #######################################################################################
 
 #################################### clone ark repo ###################################
