@@ -6,10 +6,13 @@ set -e
 # do this so apt has a dns resolver
 mkdir -p /run/systemd/resolve
 echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
+# echo "packer-runner" > /etc/hostname
+# echo "127.0.1.1 packer-runner" >> /etc/hosts
+# cat /etc/hosts
 #######################################################################################
 
 #################################### update the OS ####################################
-apt-get update -y &&  apt-get upgrade -y
+DEBIAN_FRONTEND=noninteractive apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 #######################################################################################
 
 ################################ update boot config ###################################
@@ -47,13 +50,14 @@ apt-get update -y &&  apt-get upgrade -y
 #######################################################################################
 
 ########################### install bootstrapping packages ############################
-apt-get install -y \
+DEBIAN_FRONTEND=noninteractive apt-get install -y \
 wget \
 curl \
 git \
 openssh-server \
 adduser \
-whois
+whois \
+cgroupfs-mount
 #######################################################################################
 
 ################################## create dexi user ###################################
@@ -70,24 +74,33 @@ chmod +x /tmp/get-docker.sh
 /tmp/get-docker.sh
 # groupadd docker
 usermod -aG docker dexi
+
+# mkdir -p /sys/fs/cgroup
+# mount -t cgroup -o devices cgroup /sys/fs/cgroup
+
+dockerd --debug # -H unix:///var/run/docker.sock
+
+echo "GOT PAST DOCKERD"
+
+docker pull ubuntu:22.04
 #######################################################################################
 
 #################################### install ROS 2 ####################################
 # Setup apt repos
-apt install software-properties-common
+DEBIAN_FRONTEND=noninteractive apt install software-properties-common
 add-apt-repository universe
 curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" |  tee /etc/apt/sources.list.d/ros2.list > /dev/null
-apt update
+DEBIAN_FRONTEND=noninteractive apt update
 
 # Install ROS2 humble
-apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server -y
+DEBIAN_FRONTEND=noninteractive apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server -y
 echo "source /opt/ros/humble/setup.bash" >> /home/dexi/.bashrc
 rosdep init
 #######################################################################################
 
 ################################## install neofetch ###################################
-apt-get install -y neofetch
+DEBIAN_FRONTEND=noninteractive apt-get install -y neofetch
 echo 'neofetch' >> /home/dexi/.bashrc
 #######################################################################################
 
@@ -110,7 +123,7 @@ colcon build --packages-select dexi_py
 #######################################################################################
 
 ################################### python led packages ###############################
-apt-get install -y python3 python3-pip
+DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip
 pip3 install rpi_ws281x
 pip3 install adafruit-blinka
 pip3 install adafruit-circuitpython-neopixel
@@ -124,7 +137,7 @@ cd /home/dexi/ark_companion_scripts
 #######################################################################################
 
 ################################### clone wifi repo ###################################
-apt install -y iw wireless-tools
+DEBIAN_FRONTEND=noninteractive apt install -y iw wireless-tools
 git clone https://github.com/Autodrop3d/raspiApWlanScripts.git /home/dexi/wifi_utilities
 #######################################################################################
 

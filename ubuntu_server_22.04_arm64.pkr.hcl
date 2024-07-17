@@ -24,6 +24,26 @@ source "arm" "ubuntu" {
     size         = "0"
     mountpoint   = "/"
   }
+  image_chroot_mounts {
+    mount_type       = "rbind"
+	  source_path      = "/dev"
+	  destination_path = "/dev"
+  }
+  image_chroot_mounts {
+    mount_type       = "proc"
+	  source_path      = "/proc"
+	  destination_path = "/proc"
+  }
+  image_chroot_mounts {
+    mount_type       = "rbind"
+	  source_path      = "/sys"
+	  destination_path = "/sys"
+  }
+  image_chroot_mounts {
+    mount_type       = "rbind"
+	  source_path      = "/var/run/dbus"
+	  destination_path = "/var/run/dbus"
+  }
   image_chroot_env             = ["PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"]
   qemu_binary_source_path      = "/usr/bin/qemu-aarch64-static"
   qemu_binary_destination_path = "/usr/bin/qemu-aarch64-static"
