@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Stop on build error
-set -e
+#set -e
 
 ############################## set up the build processs ##############################
 # do this so apt has a dns resolver
@@ -69,7 +69,7 @@ usermod -aG sudo dexi
 curl --output /tmp/get-docker.sh https://get.docker.com
 chmod +x /tmp/get-docker.sh
 /tmp/get-docker.sh
-groupadd docker
+#groupadd docker
 usermod -aG docker dexi
 #######################################################################################
 
@@ -82,7 +82,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-a
 apt update
 
 # Install ROS2 humble
-apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server ros-humble-topic-tools -y
+apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server ros-humble-topic-tools ros-humble-camera-ros -y
 echo "source /opt/ros/humble/setup.bash" >> /home/dexi/.bashrc
 echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 rosdep init
@@ -96,7 +96,7 @@ echo 'neofetch' >> /home/dexi/.bashrc
 
 ################################### clone and build dexi repo #########################
 mkdir -p /home/dexi/dexi_ws/src
-git clone -b develop https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
+git clone -b feature/boot-with-picam2 https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
@@ -116,6 +116,8 @@ source /home/dexi/dexi_ws/install/setup.bash
 colcon build --packages-select dexi_py
 colcon build --packages-select droneblocks
 colcon build --packages-select dexi
+
+colcon build --packages-select web_video_server
 #######################################################################################
 
 #################################### clone ark repo ###################################
