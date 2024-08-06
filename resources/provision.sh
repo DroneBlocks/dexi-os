@@ -69,7 +69,7 @@ usermod -aG sudo dexi
 curl --output /tmp/get-docker.sh https://get.docker.com
 chmod +x /tmp/get-docker.sh
 /tmp/get-docker.sh
-groupadd docker
+# groupadd docker
 usermod -aG docker dexi
 #######################################################################################
 
@@ -96,7 +96,7 @@ echo 'neofetch' >> /home/dexi/.bashrc
 
 ################################### clone and build dexi repo #########################
 mkdir -p /home/dexi/dexi_ws/src
-git clone -b develop https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
+git clone -b feature/custom-mode-example-from-ark https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
@@ -116,6 +116,9 @@ source /home/dexi/dexi_ws/install/setup.bash
 colcon build --packages-select dexi_py
 colcon build --packages-select droneblocks
 colcon build --packages-select dexi
+
+colcon build --packages-select px4_ros2_cpp
+colcon build --packages-select custom_mode
 #######################################################################################
 
 #################################### clone ark repo ###################################
