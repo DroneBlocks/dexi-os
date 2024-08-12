@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Stop on build error
-set -e
+#set -e
 
 ############################## set up the build processs ##############################
 # do this so apt has a dns resolver
@@ -69,7 +69,7 @@ usermod -aG sudo dexi
 curl --output /tmp/get-docker.sh https://get.docker.com
 chmod +x /tmp/get-docker.sh
 /tmp/get-docker.sh
-#groupadd docker
+groupadd docker
 usermod -aG docker dexi
 #######################################################################################
 
@@ -136,6 +136,8 @@ pip3 install rpi_ws281x
 pip3 install adafruit-blinka
 pip3 install adafruit-circuitpython-neopixel
 pip3 install adafruit-circuitpython-led-animation
+pip3 install pysm
+pip3 install flask
 #######################################################################################
 
 ############################### provision runonce daemon ##############################
