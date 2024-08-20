@@ -19,6 +19,11 @@ echo "127.0.0.1 $(hostnamectl hostname)" >> /etc/hosts
 # Change dexi directory permissions
 chown -R dexi:dexi /home/dexi
 
+# Load DroneBlocks image from provision script since Docker isn't readily available during provisioning
+docker load < /home/dexi/docker-drag/droneblocks_dexi-droneblocks.tar
+docker run -d --restart unless-stopped -p 80:80 droneblocks/dexi-droneblocks:latest
+rm -rf /home/dexi/docker-drag
+
 # Boot faster
 systemctl disable systemd-networkd-wait-online.service
 systemctl mask systemd-networkd-wait-online.service

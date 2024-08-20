@@ -96,7 +96,7 @@ echo 'neofetch' >> /home/dexi/.bashrc
 
 ################################### clone and build dexi repo #########################
 mkdir -p /home/dexi/dexi_ws/src
-git clone https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
+git clone -b feature/gpio-node https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
@@ -137,6 +137,11 @@ pip3 install adafruit-blinka
 pip3 install adafruit-circuitpython-neopixel
 pip3 install adafruit-circuitpython-led-animation
 #######################################################################################
+
+pip3 install requests
+git clone https://github.com/NotGlop/docker-drag /home/dexi/docker-drag
+cd /home/dexi/docker-drag
+python3 docker_pull.py droneblocks/dexi-droneblocks:latest
 
 ############################### provision runonce daemon ##############################
 # creates a job that only runs once (AKA on first boot)
