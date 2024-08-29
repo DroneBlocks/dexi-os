@@ -118,6 +118,8 @@ colcon build --packages-select droneblocks
 colcon build --packages-select dexi
 
 colcon build --packages-select web_video_server # To make pi camera available on port 8080
+
+colcon build --packages-select apriltag_ros
 #######################################################################################
 
 #################################### clone ark repo ###################################
