@@ -142,10 +142,18 @@ pip3 install adafruit-circuitpython-neopixel
 pip3 install adafruit-circuitpython-led-animation
 #######################################################################################
 
+########################## DroneBlocks docker web tools ###############################
 pip3 install requests
 git clone https://github.com/NotGlop/docker-drag /home/dexi/docker-drag
 cd /home/dexi/docker-drag
 python3 docker_pull.py droneblocks/dexi-droneblocks:latest
+#######################################################################################
+
+########################## PX4 ROS Node for Navigation ################################
+git clone https://github.com/brandonhanner/PX4-ROS-Node /home/dexi/PX4-ROS-Node
+pip3 install pysm
+pip3 install flask
+#######################################################################################
 
 ############################### provision runonce daemon ##############################
 # creates a job that only runs once (AKA on first boot)
