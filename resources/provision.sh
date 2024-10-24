@@ -99,7 +99,7 @@ echo 'neofetch' >> /home/dexi/.bashrc
 
 ################################### clone and build dexi repo #########################
 mkdir -p /home/dexi/dexi_ws/src
-git clone https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
+git clone -b feature/px4-v1.15.0 https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
@@ -124,6 +124,10 @@ colcon build --packages-select web_video_server # To make pi camera available on
 colcon build --packages-select apriltag_ros
 #######################################################################################
 
+################ clone node-red project for use in first_boot.sh ######################
+git clone https://github.com/DroneBlocks/node-red-dexi /home/dexi/node-red-dexi
+#######################################################################################
+
 #################################### clone ark repo ###################################
 git clone https://github.com/DroneBlocks/ark_companion_scripts.git /home/dexi/ark_companion_scripts
 cd /home/dexi/ark_companion_scripts
@@ -146,6 +150,14 @@ pip3 install requests
 git clone https://github.com/NotGlop/docker-drag /home/dexi/docker-drag
 cd /home/dexi/docker-drag
 python3 docker_pull.py droneblocks/dexi-droneblocks:latest
+python3 docker_pull.py droneblocks/dexi-node-red:latest
+#######################################################################################
+
+########################## PX4 ROS Node for Navigation ################################
+git clone https://github.com/dbaldwin/PX4-ROS-Node /home/dexi/PX4-ROS-Node
+pip3 install pysm
+pip3 install flask
+#######################################################################################
 
 ############################### provision runonce daemon ##############################
 # creates a job that only runs once (AKA on first boot)
