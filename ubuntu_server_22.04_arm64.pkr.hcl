@@ -6,7 +6,7 @@ source "arm" "ubuntu" {
   file_unarchive_cmd    = ["xz", "--decompress", "$ARCHIVE_PATH"]
   image_build_method    = "resize"
   image_path            = "dexi_ubuntu_22.img"
-  image_size            = "10G"
+  image_size            = "12G"
   image_type            = "dos"
   image_partitions {
     name         = "boot"
