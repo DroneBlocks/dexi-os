@@ -154,9 +154,9 @@ python3 docker_pull.py droneblocks/dexi-node-red:latest
 #######################################################################################
 
 ########################## PX4 ROS Node for Navigation ################################
-git clone https://github.com/dbaldwin/PX4-ROS-Node /home/dexi/PX4-ROS-Node
-pip3 install pysm
-pip3 install flask
+# git clone https://github.com/dbaldwin/PX4-ROS-Node /home/dexi/PX4-ROS-Node
+# pip3 install pysm
+# pip3 install flask
 #######################################################################################
 
 ############################### provision runonce daemon ##############################

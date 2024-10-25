@@ -23,7 +23,7 @@ chown -R dexi:dexi /home/dexi
 docker load < /home/dexi/docker-drag/droneblocks_dexi-droneblocks.tar
 docker load < /home/dexi/docker-drag/droneblocks_dexi-node-red.tar
 docker run -d --restart unless-stopped -p 80:80 --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
-docker run -d --restart unless-stopped -p 1880:1880 /home/dexi/node-red/flows:/data --name dexi-node-red droneblocks/dexi-node-red:latest
+docker run -d --restart unless-stopped -p 1880:1880 /home/dexi/node-red-dexi/flows:/data --name dexi-node-red droneblocks/dexi-node-red:latest
 #rm -rf /home/dexi/docker-drag
 
 # Boot faster
