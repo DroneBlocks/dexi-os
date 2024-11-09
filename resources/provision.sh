@@ -146,11 +146,17 @@ pip3 install adafruit-circuitpython-neopixel
 pip3 install adafruit-circuitpython-led-animation
 #######################################################################################
 
-pip3 install requests
-git clone https://github.com/NotGlop/docker-drag /home/dexi/docker-drag
+# For some reason this is continuously failing but works fine standalone
+# pip3 install requests
+# git clone https://github.com/NotGlop/docker-drag /home/dexi/docker-drag
+# cd /home/dexi/docker-drag
+# python3 docker_pull.py droneblocks/dexi-droneblocks:latest
+# python3 docker_pull.py droneblocks/dexi-node-red:latest
+
+mkdir /home/dexi/docker-drag
 cd /home/dexi/docker-drag
-python3 docker_pull.py droneblocks/dexi-droneblocks:latest
-python3 docker_pull.py droneblocks/dexi-node-red:latest
+curl -L -o droneblocks_dexi-droneblocks.tar "https://www.dropbox.com/scl/fi/ag6tml3hpqtg4g0olrkcc/droneblocks_dexi-droneblocks.tar?rlkey=yzr631iv0dv0dgjtzcolbozmg&st=eeaigvva&dl=1"
+curl -L -o droneblocks_dexi-node-red.tar "https://www.dropbox.com/scl/fi/a51ndr8s8xgz5swqu0rp8/droneblocks_dexi-node-red.tar?rlkey=2lphmkcbgcwtebws75mh40lbr&st=jmk2s8tc&dl=1"
 #######################################################################################
 
 ########################## PX4 ROS Node for Navigation ################################
