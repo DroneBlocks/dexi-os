@@ -99,7 +99,7 @@ echo 'neofetch' >> /home/dexi/.bashrc
 
 ################################### clone and build dexi repo #########################
 mkdir -p /home/dexi/dexi_ws/src
-git clone https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
+git clone -b feature/avr-2024 https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
@@ -122,6 +122,10 @@ colcon build --packages-select dexi
 colcon build --packages-select web_video_server # To make pi camera available on port 8080
 
 colcon build --packages-select apriltag_ros
+
+# Copy camera calibration file into place
+mkdir -p /root/.ros/camera_info
+cp /home/dexi/dexi_ws/src/dexi/camera_info/main_camera_2.1.yaml /root/.ros/camera_info/imx219__base_soc_i2c0mux_i2c_1_imx219_10_640x480.yaml
 #######################################################################################
 
 ################ clone node-red project for use in first_boot.sh ######################
