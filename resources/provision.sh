@@ -14,38 +14,54 @@ apt-get update -y &&  apt-get upgrade -y
 #######################################################################################
 
 ################################ update boot config ###################################
-
 {
+   echo '# For more options and information see:'
+   echo '# http://rpf.io/configtxt'
    echo ""
-   echo '# General Purpose UART External'
-   echo 'dtoverlay=uart3,ctsrts'
+   echo '# Enable composite video output (TV out)'
+   echo 'enable_tvout=1'
+   echo 'sdtv_mode=2       # Set to PAL mode (Europe and others)'
+   echo 'sdtv_aspect=3     # Set 16:9 aspect ratio for composite video'
    echo ""
-   echo '# Telem2 to FC'
-   echo 'dtoverlay=uart4,ctsrts'
+   echo '# Set GPU memory allocation (128 MB for better graphics support)'
+   echo 'gpu_mem=128'
    echo ""
-   echo '# Drive USB Hub nRESET high'
-   echo 'gpio=26=op,dh'
+   echo '# Enable I2C interfaces for additional peripherals'
+   echo 'dtparam=i2c_arm=on'
+   echo 'dtoverlay=i2c4,pins_6_7   # I2C on GPIO pins 6 and 7'
+   echo 'dtoverlay=i2c5,pins_10_11 # I2C on GPIO pins 10 and 11'
    echo ""
-   echo '# Drive FMU_RST_REQ low'
-   echo 'gpio=25=op,dl'
+   echo '# Enable audio'
+   echo 'dtparam=audio=on'
    echo ""
-   echo '# Drive USB_OTG_FS_VBUS high to enable FC USB'
-   echo 'gpio=27=op,dh'
+   echo '# Automatically load overlays for detected cameras'
+   echo 'camera_auto_detect=1'
+   echo 'display_auto_detect=1'
    echo ""
-   echo '# Disable Gigabit Ethernet, it can only do 100Mbps'
-   echo 'dtoverlay=cm4-disable-gigabit-ethernet'
+   echo '# Disable compensation for displays with overscan'
+   echo 'disable_overscan=1'
    echo ""
-   echo 'dtoverlay=imx219,cam0'
-   echo 'dtoverlay=imx219,cam1'
+   echo '# Set up overlays for ArduCam and IMX519 camera modules'
+   echo 'dtoverlay=arducam-pivariety'
+   echo 'dtoverlay=imx519'
+   echo 'dtoverlay=imx519,cam0'
    echo ""
-   echo 'dtoverlay=gpio-fan,gpiopin=19'
+   echo '# Set up serial port(s)'
+   echo 'enable_uart=1'
+   echo 'dtoverlay=uart0'
+   echo 'dtoverlay=uart3'
+   echo 'dtoverlay=uart4'
    echo ""
-   echo '# Disable SPI for now because it renders /dev/ttyAMA2 useless, which is where we get serial telem for ROS2'
-   echo 'dtparam=spi=off'
+   echo '# Enable DRM (Direct Rendering Manager) for graphics acceleration'
+   echo 'dtoverlay=vc4-fkms-v3d  # Use FKMS for compatibility with composite output'
    echo ""
-   echo '# Enable CM4 external antenna'
-   echo 'dtparam=ant2'
+   echo '# Specific settings for Compute Module 4'
+   echo '[cm4]'
+   echo "otg_mode=1  # Enable USB OTG mode on the CM4's built-in XHCI USB controller"
    echo ""
+   echo '# Specific settings for Pi 4'
+   echo '[pi4]'
+   echo 'arm_boost=1  # Enable max CPU speed for Pi 4'
 } >> /boot/firmware/config.txt
 
 #######################################################################################
@@ -144,6 +160,13 @@ pip3 install rpi_ws281x
 pip3 install adafruit-blinka
 pip3 install adafruit-circuitpython-neopixel
 pip3 install adafruit-circuitpython-led-animation
+
+# Raspanion
+pip3 install smbus2
+pip3 install pyserial
+apt install python3-pigpio
+
+git clone https://github.com/Raspanion/Raspanion/ /home/dexi/raspanion
 #######################################################################################
 
 # For some reason this is continuously failing but works fine standalone

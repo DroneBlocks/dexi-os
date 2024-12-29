@@ -30,4 +30,8 @@ rm -rf /home/dexi/docker-drag
 systemctl disable systemd-networkd-wait-online.service
 systemctl mask systemd-networkd-wait-online.service
 
+# Raspanion
+systemctl enable pigpiod
+systemctl start pigpiod
+
 reboot now
