@@ -75,7 +75,8 @@ curl \
 git \
 openssh-server \
 adduser \
-whois
+whois \
+unzip
 #######################################################################################
 
 ################################## create dexi user ###################################
@@ -188,6 +189,16 @@ curl -L -o droneblocks_dexi-node-red.tar "https://www.dropbox.com/scl/fi/a51ndr8
 # git clone https://github.com/dbaldwin/PX4-ROS-Node /home/dexi/PX4-ROS-Node
 # pip3 install pysm
 # pip3 install flask
+#######################################################################################
+
+########################## pigpiod for servo control ##################################
+cd /home/dexi
+wget https://github.com/joan2937/pigpio/archive/master.zip
+unzip master.zip
+cd pigpio-master
+make
+sudo make install
+rm /home/dexi/master.zip
 #######################################################################################
 
 ############################### provision runonce daemon ##############################
