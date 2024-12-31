@@ -13,57 +13,59 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 apt-get update -y &&  apt-get upgrade -y
 #######################################################################################
 
-################################ update boot config ###################################
+################################ replace boot config ###################################
 {
-   echo '# For more options and information see:'
-   echo '# http://rpf.io/configtxt'
-   echo ""
-   echo '# Enable composite video output (TV out)'
-   echo 'enable_tvout=1'
-   echo 'sdtv_mode=2       # Set to PAL mode (Europe and others)'
-   echo 'sdtv_aspect=3     # Set 16:9 aspect ratio for composite video'
-   echo ""
-   echo '# Set GPU memory allocation (128 MB for better graphics support)'
-   echo 'gpu_mem=128'
-   echo ""
+   echo '[all]'
+   echo 'kernel=vmlinuz'
+   echo 'cmdline=cmdline.txt'
+   echo 'initramfs initrd.img followkernel'
+   echo ''
+   echo '[pi4]'
+   echo 'max_framebuffers=2'
+   echo 'arm_boost=1'
+   echo ''
+   echo '[all]'
+   echo '# Enable the audio output, I2C and SPI interfaces on the GPIO header. As these'
+   echo '# parameters related to the base device-tree they must appear *before* any'
+   echo '# other dtoverlay= specification'
+   echo 'dtparam=audio=on'
+   echo 'dtparam=i2c_arm=on'
+   echo 'dtparam=spi=on'
+   echo ''
+   echo '# Comment out the following line if the edges of the desktop appear outside'
+   echo '# the edges of your display'
+   echo 'disable_overscan=1'
+   echo ''
+   echo '# Enable the serial pins'
+   echo 'enable_uart=1'
+   echo ''
+   echo '# Autoload overlays for any recognized cameras or displays that are attached'
+   echo '# to the CSI/DSI ports. Please note this is for libcamera support, *not* for'
+   echo '# the legacy camera stack'
+   echo 'camera_auto_detect=1'
+   echo 'display_auto_detect=1'
+   echo ''
+   echo '# Config settings specific to arm64'
+   echo 'arm_64bit=1'
+   echo 'dtoverlay=dwc2'
+   echo ''
+   echo '[cm4]'
+   echo '# Enable the USB2 outputs on the IO board (assuming your CM4 is plugged into'
+   echo '# such a board)'
+   echo 'dtoverlay=dwc2,dr_mode=host'
+   echo ''
+   echo '[all]'
    echo '# Enable I2C interfaces for additional peripherals'
    echo 'dtparam=i2c_arm=on'
    echo 'dtoverlay=i2c4,pins_6_7   # I2C on GPIO pins 6 and 7'
    echo 'dtoverlay=i2c5,pins_10_11 # I2C on GPIO pins 10 and 11'
-   echo ""
-   echo '# Enable audio'
-   echo 'dtparam=audio=on'
-   echo ""
-   echo '# Automatically load overlays for detected cameras'
-   echo 'camera_auto_detect=1'
-   echo 'display_auto_detect=1'
-   echo ""
-   echo '# Disable compensation for displays with overscan'
-   echo 'disable_overscan=1'
-   echo ""
-   echo '# Set up overlays for ArduCam and IMX519 camera modules'
-   echo 'dtoverlay=arducam-pivariety'
-   echo 'dtoverlay=imx519'
-   echo 'dtoverlay=imx519,cam0'
-   echo ""
+   echo ''
    echo '# Set up serial port(s)'
    echo 'enable_uart=1'
    echo 'dtoverlay=uart0'
    echo 'dtoverlay=uart3'
    echo 'dtoverlay=uart4'
-   echo ""
-   echo '# Enable DRM (Direct Rendering Manager) for graphics acceleration'
-   echo 'dtoverlay=vc4-fkms-v3d  # Use FKMS for compatibility with composite output'
-   echo ""
-   echo '# Specific settings for Compute Module 4'
-   echo '[cm4]'
-   echo "otg_mode=1  # Enable USB OTG mode on the CM4's built-in XHCI USB controller"
-   echo ""
-   echo '# Specific settings for Pi 4'
-   echo '[pi4]'
-   echo 'arm_boost=1  # Enable max CPU speed for Pi 4'
-} >> /boot/firmware/config.txt
-
+} > /boot/firmware/config.txt
 #######################################################################################
 
 ########################### install bootstrapping packages ############################
