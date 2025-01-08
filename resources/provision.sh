@@ -65,6 +65,11 @@ apt-get update -y &&  apt-get upgrade -y
    echo 'dtoverlay=uart0'
    echo 'dtoverlay=uart3'
    echo 'dtoverlay=uart4'
+   echo ''
+   echo '# Set up overlays for ArduCam and IMX519 camera modules'
+   echo 'dtoverlay=arducam-pivariety'
+   echo 'dtoverlay=imx519'
+   echo 'dtoverlay=imx519,cam0'
 } > /boot/firmware/config.txt
 #######################################################################################
 
@@ -118,7 +123,7 @@ echo 'neofetch' >> /home/dexi/.bashrc
 
 ################################### clone and build dexi repo #########################
 mkdir -p /home/dexi/dexi_ws/src
-git clone https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
+git clone -b feature/raspanion https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
