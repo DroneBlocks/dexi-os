@@ -153,8 +153,11 @@ mkdir -p /root/.ros/camera_info
 # Pi Camera v2.1
 cp /home/dexi/dexi_ws/src/dexi/camera_info/main_camera_2.1.yaml /root/.ros/camera_info/imx219__base_soc_i2c0mux_i2c_1_imx219_10_640x480.yaml
 
-# Arducam IMX519 16MP
-cp /home/dexi/dexi_ws/src/dexi/camera_info/arducam_imx519_16mp.yaml /root/.ros/camera_info/imx519__base_soc_i2c0mux_i2c_0_imx519_1a_640x480.yaml
+# Arducam IMX519 16MP 640x480
+cp /home/dexi/dexi_ws/src/dexi/camera_info/arducam_imx519_16mp_640_480.yaml /root/.ros/camera_info/imx519__base_soc_i2c0mux_i2c_0_imx519_1a_640x480.yaml
+
+# Arducam IMX519 16MP 320x240
+cp /home/dexi/dexi_ws/src/dexi/camera_info/arducam_imx519_16mp_320_240.yaml /root/.ros/camera_info/imx519__base_soc_i2c0mux_i2c_0_imx519_1a_320x240.yaml
 
 #######################################################################################
 
