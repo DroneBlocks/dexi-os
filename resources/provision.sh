@@ -57,7 +57,9 @@ curl \
 git \
 openssh-server \
 adduser \
-whois
+whois \
+python3-pigpio \
+unzip
 #######################################################################################
 
 ################################## create dexi user ###################################
@@ -85,7 +87,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-a
 apt update
 
 # Install ROS2 humble
-apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server ros-humble-topic-tools ros-humble-camera-ros -y
+apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server ros-humble-topic-tools ros-humble-camera-ros ros-humble-web-video-server -y
 echo "source /opt/ros/humble/setup.bash" >> /home/dexi/.bashrc
 echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 rosdep init
@@ -99,7 +101,7 @@ echo 'neofetch' >> /home/dexi/.bashrc
 
 ################################### clone and build dexi repo #########################
 mkdir -p /home/dexi/dexi_ws/src
-git clone https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
+git clone -b develop https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
@@ -160,9 +162,17 @@ curl -L -o droneblocks_dexi-node-red.tar "https://www.dropbox.com/scl/fi/a51ndr8
 #######################################################################################
 
 ########################## PX4 ROS Node for Navigation ################################
-# git clone https://github.com/dbaldwin/PX4-ROS-Node /home/dexi/PX4-ROS-Node
-# pip3 install pysm
-# pip3 install flask
+pip3 install pysm
+#######################################################################################
+
+########################## pigpiod for servo control ##################################
+cd /home/dexi
+wget -O pigpio-master.zip https://github.com/joan2937/pigpio/archive/master.zip
+unzip pigpio-master.zip
+cd pigpio-master
+make
+sudo make install
+rm /home/dexi/pigpio-master.zip
 #######################################################################################
 
 ############################### provision runonce daemon ##############################
