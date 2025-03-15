@@ -87,7 +87,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-a
 apt update
 
 # Install ROS2 humble
-apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server ros-humble-topic-tools ros-humble-camera-ros ros-humble-web-video-server -y
+apt install ros-humble-ros-base ros-dev-tools ros-humble-rosbridge-server ros-humble-topic-tools ros-humble-camera-ros ros-humble-compressed-image-transport -y
 echo "source /opt/ros/humble/setup.bash" >> /home/dexi/.bashrc
 echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 rosdep init
@@ -157,7 +157,7 @@ pip3 install adafruit-circuitpython-led-animation
 
 mkdir /home/dexi/docker-drag
 cd /home/dexi/docker-drag
-curl -L -o droneblocks_dexi-droneblocks.tar "https://www.dropbox.com/scl/fi/ag6tml3hpqtg4g0olrkcc/droneblocks_dexi-droneblocks.tar?rlkey=yzr631iv0dv0dgjtzcolbozmg&st=eeaigvva&dl=1"
+curl -L -o droneblocks_dexi-droneblocks.tar "https://www.dropbox.com/scl/fi/62z3ln6105okishynsskw/droneblocks_dexi-droneblocks.tar?rlkey=5mv8auqt7v8czaq72q0k70bta&st=fjebthup&dl=1"
 curl -L -o droneblocks_dexi-node-red.tar "https://www.dropbox.com/scl/fi/a51ndr8s8xgz5swqu0rp8/droneblocks_dexi-node-red.tar?rlkey=2lphmkcbgcwtebws75mh40lbr&st=jmk2s8tc&dl=1"
 #######################################################################################
 
