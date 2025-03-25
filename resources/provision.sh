@@ -101,7 +101,7 @@ echo 'neofetch' >> /home/dexi/.bashrc
 
 ################################### clone and build dexi repo #########################
 mkdir -p /home/dexi/dexi_ws/src
-git clone -b develop https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
+git clone https://github.com/DroneBlocks/dexi.git /home/dexi/dexi_ws/src
 cd /home/dexi/dexi_ws/src/dexi
 git submodule update --init --remote --recursive
 echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
@@ -157,8 +157,8 @@ pip3 install adafruit-circuitpython-led-animation
 
 mkdir /home/dexi/docker-drag
 cd /home/dexi/docker-drag
-curl -L -o droneblocks_dexi-droneblocks.tar "https://www.dropbox.com/scl/fi/62z3ln6105okishynsskw/droneblocks_dexi-droneblocks.tar?rlkey=5mv8auqt7v8czaq72q0k70bta&st=fjebthup&dl=1"
-curl -L -o droneblocks_dexi-node-red.tar "https://www.dropbox.com/scl/fi/a51ndr8s8xgz5swqu0rp8/droneblocks_dexi-node-red.tar?rlkey=2lphmkcbgcwtebws75mh40lbr&st=jmk2s8tc&dl=1"
+curl -L -o droneblocks_dexi-droneblocks.tar "https://www.dropbox.com/scl/fi/fbeg5ohd6wty08rfpikrz/droneblocks_dexi-droneblocks_0.08.tar?rlkey=00mbmjjjszjqseo9969srb9cs&st=kohg2v3s&dl=1"
+curl -L -o droneblocks_dexi-node-red.tar "https://www.dropbox.com/scl/fi/6169spmx98hg42wo96e7h/droneblocks_dexi-node-red_0.0.9.tar?rlkey=7hhv19shovlgzlcrykdosr80l&st=4eqexabu&dl=1"
 #######################################################################################
 
 ########################## PX4 ROS Node for Navigation ################################

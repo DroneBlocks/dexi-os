@@ -35,6 +35,16 @@ build {
     source = "resources"
     destination = "/tmp/"
   }
+
+  # Inline script to uninstall cloud-init
+  provisioner "shell" {
+    inline = [
+      "sudo apt purge -y cloud-init",
+      "sudo rm -rf /etc/cloud/",
+      "sudo rm -rf /var/lib/cloud/"
+    ]
+  }
+  
   provisioner "shell" {
     script = "resources/provision.sh"
   }
