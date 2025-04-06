@@ -62,6 +62,53 @@ python3-pigpio \
 unzip
 #######################################################################################
 
+################################# install code-server #################################
+# Download and install code-server
+curl -fsSL https://code-server.dev/install.sh | sh
+
+# Create config directory for root user
+mkdir -p /root/.config/code-server
+
+# Create the config.yaml file
+cat > /root/.config/code-server/config.yaml << EOF
+bind-addr: 0.0.0.0:9999
+auth: password
+password: droneblocks
+cert: false
+user-data-dir: /root/.local/share/code-server
+extensions-dir: /root/.local/share/code-server/extensions
+EOF
+
+# Set dark theme as default
+mkdir -p /root/.local/share/code-server/User
+cat > /root/.local/share/code-server/User/settings.json << EOF
+{
+    "workbench.colorTheme": "Default Dark+",
+    "workbench.startupEditor": "none"
+}
+EOF
+
+# Create systemd service file
+cat > /etc/systemd/system/code-server.service << EOF
+[Unit]
+Description=code-server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Environment=HOME=/root
+ExecStart=/usr/bin/code-server --config /root/.config/code-server/config.yaml /home/dexi/dexi_ws
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable the service
+systemctl enable code-server
+#######################################################################################
+
 ################################## create dexi user ###################################
 DEXI_PASS=dexi
 PASS_HASH=$(mkpasswd -m sha-512 $DEXI_PASS)
@@ -157,8 +204,8 @@ pip3 install adafruit-circuitpython-led-animation
 
 mkdir /home/dexi/docker-drag
 cd /home/dexi/docker-drag
-curl -L -o droneblocks_dexi-droneblocks.tar "https://www.dropbox.com/scl/fi/62z3ln6105okishynsskw/droneblocks_dexi-droneblocks.tar?rlkey=5mv8auqt7v8czaq72q0k70bta&st=fjebthup&dl=1"
-curl -L -o droneblocks_dexi-node-red.tar "https://www.dropbox.com/scl/fi/a51ndr8s8xgz5swqu0rp8/droneblocks_dexi-node-red.tar?rlkey=2lphmkcbgcwtebws75mh40lbr&st=jmk2s8tc&dl=1"
+curl -L -o droneblocks_dexi-droneblocks.tar "https://www.dropbox.com/scl/fi/wecfd8im6vtwm61fr39xg/droneblocks_dexi-droneblocks_0.09.tar?rlkey=1uw28pmc98rbdz8jmr3vco3jv&st=jhfs7xwz&dl=1"
+curl -L -o droneblocks_dexi-node-red.tar "https://www.dropbox.com/scl/fi/7mdwkra1lwg8ghea3f241/droneblocks_dexi-node-red.tar?rlkey=4ww0oupfz0k90mud8dnra7l7b&st=m95m0le5&dl=1"
 #######################################################################################
 
 ########################## PX4 ROS Node for Navigation ################################
