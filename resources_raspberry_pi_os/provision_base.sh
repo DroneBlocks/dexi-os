@@ -55,7 +55,6 @@ apt-get install -y \
 wget \
 curl \
 git \
-openssh-server \
 adduser \
 whois \
 python3-pigpio \
@@ -115,6 +114,11 @@ DEXI_PASS=dexi
 PASS_HASH=$(mkpasswd -m sha-512 $DEXI_PASS)
 useradd -m -p "$PASS_HASH" -s /bin/bash dexi
 usermod -aG sudo dexi
+
+# Enable SSH for headless operation
+touch /boot/ssh
+systemctl enable ssh
+systemctl start ssh
 #######################################################################################
 
 ###################################  install docker ###################################
@@ -123,11 +127,5 @@ chmod +x /tmp/get-docker.sh
 /tmp/get-docker.sh
 usermod -aG docker dexi
 #######################################################################################
-
-#################################### install ROS 2 ####################################
-# Setup apt repos for Raspberry Pi OS (Debian-based)
-apt install -y software-properties-common
-add-apt-repository universe
-apt update
 
 apt install -y neofetch
