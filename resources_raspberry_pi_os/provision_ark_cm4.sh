@@ -40,42 +40,7 @@ source /home/dexi/ros2_jazzy/install/setup.bash
 
 # Put boot config into place
 echo "Writing config.txt contents to /boot/config.txt..."
-cat /home/dexi/dexi_ws/src/dexi_bringup/config/pi5/config.txt > /boot/config.txt
-
-# Rosbridge
-colcon build --packages-select rosbridge_test_msgs
-colcon build --packages-select rosbridge_library
-colcon build --packages-select rosapi_msgs
-colcon build --packages-select rosapi
-colcon build --packages-select rosbridge_msgs
-colcon build --packages-select rosbridge_server
-
-# Micro ROS agent
-colcon build --packages-select micro_ros_msgs
-colcon build --packages-select micro_ros_agent
-
-# DEXI interfaces
-colcon build --packages-select dexi_interfaces
-
-# DEXI LED
-pip install --break-system-packages pi5neo
-colcon build --packages-select dexi_led
-
-# Dependencies for DEXI CPP
-cd /home/dexi
-wget http://abyz.me.uk/lg/lg.zip
-unzip lg.zip
-cd lg
-make
-make install
-cd ..
-rm -rf lg.zip
-rm -rf lg
-cd /home/dexi/dexi_ws
-
-# DEXI CPP
-colcon build --packages-select px4_msgs
-colcon build --packages-select dexi_cpp
+cat /home/dexi/dexi_ws/src/dexi_bringup/config/cm4/config.txt >> /boot/config.txt
 
 # April tag dependencies
 colcon build --packages-select image_geometry
@@ -90,16 +55,8 @@ colcon build --packages-select theora_image_transport
 colcon build --packages-select zstd_image_transport
 colcon build --packages-select image_transport_plugins
 
-# Remvove camera_ros dependency 
-sed -i '/<exec_depend>camera_ros<\/exec_depend>/d' /home/dexi/dexi_ws/src/apriltag_ros/package.xml
-colcon build --packages-select apriltag_ros
-
-# DEXI camera
-# Right now this is the USB camera for Pi 5
-colcon build --packages-select dexi_camera
-
-# DEXI bringup
-colcon build --packages-select dexi_bringup
+apt install -y libcamera-dev
+colcon build --packages-select camera_ros
 
 # BEGIN MAVLINK ROUTER
 sudo apt install -y meson ninja-build pkg-config gcc g++ systemd
@@ -113,7 +70,7 @@ ninja -C build install
 cd /home/dexi
 rm -rf mavlink-router
 mkdir -p /etc/mavlink-router
-cp /home/dexi/dexi_ws/src/dexi_bringup/config/mavlink-router/main.conf /etc/mavlink-router/main.conf
+cp /home/dexi/dexi_ws/src/dexi_bringup/config/mavlink-router/ark_cm4_main.conf /etc/mavlink-router/main.conf
 systemctl enable mavlink-router.service
 # END MAVLINK ROUTER
 

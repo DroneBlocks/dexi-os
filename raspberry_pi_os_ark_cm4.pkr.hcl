@@ -1,7 +1,7 @@
 variable "provision_script" {
   description = "Path to the provision script to use"
   type        = string
-  default     = "resources_raspberry_pi_os/provision_ark_pi4.sh"
+  default     = "resources_raspberry_pi_os/provision_ark_cm4.sh"
 }
 
 source "arm" "raspberry_pi_os_custom" {
@@ -10,7 +10,7 @@ source "arm" "raspberry_pi_os_custom" {
   file_target_extension = "xz"
   file_unarchive_cmd    = ["xz", "--decompress", "$ARCHIVE_PATH"]
   image_build_method    = "resize"
-  image_path            = "dexi_raspberry_pi_os_custom.img"
+  image_path            = "dexi_raspberry_pi_os_ark_cm4.img"
   image_size            = "30G"
   image_type            = "dos"
   image_partitions {

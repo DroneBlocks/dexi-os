@@ -11,7 +11,7 @@ hostnamectl hostname $DEXI_SSID
 echo "127.0.0.1 $(hostnamectl hostname)" >> /etc/hosts
 
 # Setup DEXI ROS2 launch file to run on boot
-/home/dexi/dexi_ws/src/dexi/scripts/install.bash
+# /home/dexi/dexi_ws/src/dexi/scripts/install.bash
 
 #setup the wifi stuff but use placeholders for first boot
 /home/dexi/wifi_utilities/setup_wlan_and_AP_modes.sh -d -s XXXXXXXX -p XXXXXXXX  -a $DEXI_SSID -r droneblocks
@@ -25,9 +25,5 @@ docker load < /home/dexi/docker-drag/droneblocks_dexi-node-red.tar
 docker run -d --restart unless-stopped -p 80:80 --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
 docker run -d --restart unless-stopped -p 1880:1880 -v /home/dexi/node-red-dexi/flows:/data --name dexi-node-red droneblocks/dexi-node-red:latest
 rm -rf /home/dexi/docker-drag
-
-# Boot faster
-systemctl disable systemd-networkd-wait-online.service
-systemctl mask systemd-networkd-wait-online.service
 
 reboot now
