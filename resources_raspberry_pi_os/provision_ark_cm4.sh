@@ -97,6 +97,8 @@ colcon build --packages-select camera_ros
 # Build dexi_camera so we have the calibration file accessible to the camera_ros node
 colcon build --packages-select dexi_camera
 
+colcon build --packages-select apriltag_ros
+
 # DEXI bringup
 colcon build --packages-select dexi_bringup
 
