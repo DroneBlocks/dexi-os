@@ -1,7 +1,7 @@
 variable "provision_script" {
   description = "Path to the provision script to use"
   type        = string
-  default     = "resources_raspberry_pi_os/provision_ark_pi4.sh"
+  default     = "resources_raspberry_pi_os/provision_custom.sh"
 }
 
 source "arm" "raspberry_pi_os_custom" {

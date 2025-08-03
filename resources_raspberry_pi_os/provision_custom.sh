@@ -38,9 +38,15 @@ git clone http://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
-# Put boot config into place
+# Put configs into place
 echo "Writing config.txt contents to /boot/config.txt..."
 cat /home/dexi/dexi_ws/src/dexi_bringup/config/pi5/config.txt > /boot/config.txt
+cat /home/dexi/dexi_ws/src/dexi_bringup/config/pi5/cmdline.txt > /boot/cmdline.txt
+
+########################### enable i2c module #########################################
+# Add i2c-dev module to /etc/modules for automatic loading on boot
+echo "i2c-dev" >> /etc/modules
+#######################################################################################
 
 # Rosbridge
 colcon build --packages-select rosbridge_test_msgs
@@ -101,6 +107,8 @@ colcon build --packages-select dexi_camera
 # DEXI bringup
 colcon build --packages-select dexi_bringup
 
+colcon build --packages-select ros2_pca9685
+
 # BEGIN MAVLINK ROUTER
 sudo apt install -y meson ninja-build pkg-config gcc g++ systemd
 cd /home/dexi
@@ -117,8 +125,4 @@ cp /home/dexi/dexi_ws/src/dexi_bringup/config/mavlink-router/main.conf /etc/mavl
 systemctl enable mavlink-router.service
 # END MAVLINK ROUTER
 
-
-
-
-
-
+chown -R dexi:dexi /home/dexi
