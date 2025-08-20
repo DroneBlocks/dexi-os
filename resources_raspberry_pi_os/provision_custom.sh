@@ -182,4 +182,13 @@ cd /
 rm -rf /tmp/dexi-networking
 #################################################################################
 
+# Add dexi user to docker group for container access
+usermod -aG docker dexi
+
+# Add ROS workspaces to bashrc for automatic sourcing
+echo "source /home/dexi/ros2_jazzy/install/setup.bash" >> /home/dexi/.bashrc
+echo "source /home/dexi/ros2_jazzy/install/setup.bash" >> /root/.bashrc
+echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
+echo "source /home/dexi/dexi_ws/install/setup.bash" >> /root/.bashrc
+
 chown -R dexi:dexi /home/dexi
