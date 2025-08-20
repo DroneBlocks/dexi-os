@@ -42,6 +42,11 @@ source /home/dexi/ros2_jazzy/install/setup.bash
 echo "Writing config.txt contents to /boot/config.txt..."
 cat /home/dexi/dexi_ws/src/dexi_bringup/config/cm4/config.txt > /boot/config.txt
 
+########################### enable i2c module #########################################
+# Add i2c-dev module to /etc/modules for automatic loading on boot
+echo "i2c-dev" >> /etc/modules
+#######################################################################################
+
 # Rosbridge
 colcon build --packages-select rosbridge_test_msgs
 colcon build --packages-select rosbridge_library
@@ -117,5 +122,60 @@ mkdir -p /etc/mavlink-router
 cp /home/dexi/dexi_ws/src/dexi_bringup/config/mavlink-router/main.conf /etc/mavlink-router/main.conf
 systemctl enable mavlink-router.service
 # END MAVLINK ROUTER
+
+################################ DEXI NETWORKING ################################
+log "Setting up DEXI networking..."
+
+# Clone and install dexi-networking
+cd /tmp
+git clone https://github.com/DroneBlocks/dexi-networking.git
+cd dexi-networking
+./install.sh
+
+# Create a service that will create the hotspot on first boot with actual MAC
+cat > /etc/systemd/system/dexi-hotspot-setup.service << 'EOF'
+[Unit]
+Description=DEXI Hotspot Setup
+After=network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/dexi-hotspot-setup.sh
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Create the setup script that runs on first boot
+cat > /usr/local/bin/dexi-hotspot-setup.sh << 'EOF'
+#!/bin/bash
+# Wait for wlan0 to be available
+sleep 10
+
+# Get the actual device MAC address
+PARTIAL_MAC=$(cat /sys/class/net/wlan0/address | awk -F: '{print $(NF-1)$NF}')
+DEXI_SSID="dexi_$PARTIAL_MAC"
+
+# Create the hotspot with the real MAC address
+/usr/local/bin/dexi/create_hotspot.sh "$DEXI_SSID" "droneblocks"
+
+# Disable this service so it only runs once
+systemctl disable dexi-hotspot-setup.service
+EOF
+
+chmod +x /usr/local/bin/dexi-hotspot-setup.sh
+systemctl enable dexi-hotspot-setup.service
+
+log "DEXI networking installed - hotspot will be created on first boot"
+log "Users can connect with password: droneblocks"
+log "Users can configure their WiFi with: sudo dexi-wifi 'NetworkName' 'password'"
+
+# Clean up temp directory
+cd /
+rm -rf /tmp/dexi-networking
+#################################################################################
 
 chown -R dexi:dexi /home/dexi
