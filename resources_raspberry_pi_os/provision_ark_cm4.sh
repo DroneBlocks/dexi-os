@@ -42,6 +42,7 @@ source /home/dexi/ros2_jazzy/install/setup.bash
 echo "Writing config.txt contents to /boot/config.txt..."
 cat /home/dexi/dexi_ws/src/dexi_bringup/config/cm4/config.txt > /boot/config.txt
 
+
 ########################### enable i2c module #########################################
 # Add i2c-dev module to /etc/modules for automatic loading on boot
 echo "i2c-dev" >> /etc/modules
@@ -119,7 +120,7 @@ ninja -C build install
 cd /home/dexi
 rm -rf mavlink-router
 mkdir -p /etc/mavlink-router
-cp /home/dexi/dexi_ws/src/dexi_bringup/config/mavlink-router/main.conf /etc/mavlink-router/main.conf
+cp /home/dexi/dexi_ws/src/dexi_bringup/config/mavlink-router/ark_cm4_main.conf /etc/mavlink-router/main.conf
 systemctl enable mavlink-router.service
 # END MAVLINK ROUTER
 
