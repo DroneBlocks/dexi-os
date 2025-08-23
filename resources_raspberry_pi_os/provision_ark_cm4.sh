@@ -105,6 +105,10 @@ colcon build --packages-select dexi_camera
 
 colcon build --packages-select apriltag_ros
 
+# DEXI yolo
+pip install --break-system-packages onnxruntime
+colcon build --packages-select dexi_yolo
+
 # DEXI bringup
 colcon build --packages-select dexi_bringup
 
