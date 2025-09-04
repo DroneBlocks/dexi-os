@@ -111,6 +111,10 @@ colcon build --packages-select dexi_yolo
 # DEXI bringup
 colcon build --packages-select dexi_bringup
 
+# Install DEXI service
+cd /home/dexi/dexi_ws/src/dexi_bringup/scripts
+./install.bash
+
 # Servo control
 apt install -y libi2c-dev
 colcon build --packages-select ros2_pca9685

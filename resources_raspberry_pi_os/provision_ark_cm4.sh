@@ -115,6 +115,10 @@ colcon build --packages-select dexi_yolo
 # DEXI bringup
 colcon build --packages-select dexi_bringup
 
+# Install DEXI service
+cd /home/dexi/dexi_ws/src/dexi_bringup/scripts
+./install.bash
+
 # BEGIN MAVLINK ROUTER
 sudo apt install -y meson ninja-build pkg-config gcc g++ systemd
 cd /home/dexi
