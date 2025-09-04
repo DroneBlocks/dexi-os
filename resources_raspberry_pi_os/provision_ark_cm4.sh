@@ -38,9 +38,10 @@ git clone http://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
-# Put boot config into place
+# Put configs into place
 echo "Writing config.txt contents to /boot/config.txt..."
 cat /home/dexi/dexi_ws/src/dexi_bringup/config/cm4/config.txt > /boot/config.txt
+cat /home/dexi/dexi_ws/src/dexi_bringup/config/cm4/cmdline.txt > /boot/cmdline.txt
 
 
 ########################### enable i2c module #########################################
@@ -64,7 +65,9 @@ colcon build --packages-select micro_ros_agent
 colcon build --packages-select dexi_interfaces
 
 # DEXI LED
-pip install --break-system-packages pi5neo
+pip install --break-system-packages adafruit-blinka
+pip install --break-system-packages adafruit-circuitpython-neopixel
+pip install --break-system-packages adafruit-circuitpython-led-animation
 colcon build --packages-select dexi_led
 
 # Dependencies for DEXI CPP

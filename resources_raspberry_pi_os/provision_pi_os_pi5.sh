@@ -104,6 +104,10 @@ colcon build --packages-select apriltag_ros
 # Right now this is the USB camera for Pi 5
 colcon build --packages-select dexi_camera
 
+# DEXI yolo
+pip install --break-system-packages onnxruntime
+colcon build --packages-select dexi_yolo
+
 # DEXI bringup
 colcon build --packages-select dexi_bringup
 

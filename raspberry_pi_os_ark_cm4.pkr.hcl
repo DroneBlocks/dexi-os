@@ -4,7 +4,7 @@ variable "provision_script" {
   default     = "resources_raspberry_pi_os/provision_ark_cm4.sh"
 }
 
-source "arm" "raspberry_pi_os_custom" {
+source "arm" "raspberry_pi_os_ark_cm4" {
   file_urls             = ["file:///build/base_images/bookwork_jazzy_docker_shrinked.img.gz.xz"]
   file_checksum_type    = "none"  # Skip checksum verification for local files
   file_target_extension = "xz"
@@ -35,7 +35,7 @@ source "arm" "raspberry_pi_os_custom" {
 }
 
 build {
-  sources = ["source.arm.raspberry_pi_os_custom"]
+  sources = ["source.arm.raspberry_pi_os_ark_cm4"]
   provisioner "file" {
     source = "resources_raspberry_pi_os"
     destination = "/tmp/resources"
