@@ -190,8 +190,29 @@ cd /
 rm -rf /tmp/dexi-networking
 #################################################################################
 
-# Add dexi user to docker group for container access
-usermod -aG docker dexi
+################################ NODE-RED SETUP ################################
+log "Setting up Node-RED repository..."
+if [ ! -d "/home/dexi/node-red-dexi" ]; then
+    git clone https://github.com/DroneBlocks/node-red-dexi /home/dexi/node-red-dexi
+    chown -R dexi:dexi /home/dexi/node-red-dexi
+    log "Node-RED repository cloned successfully"
+else
+    log "Node-RED repository already exists"
+fi
+#################################################################################
+
+################################ DOCKER CONTAINERS ################################
+log "Running Docker containers setup script..."
+if [ -f "/tmp/resources/setup_docker_containers.sh" ]; then
+    log "Docker setup script found, executing..."
+    chmod +x /tmp/resources/setup_docker_containers.sh
+    /tmp/resources/setup_docker_containers.sh
+    log "Docker setup script completed"
+else
+    log "ERROR: Docker setup script not found at /tmp/resources/setup_docker_containers.sh"
+    ls -la /tmp/resources/ || log "Could not list /tmp/resources/"
+fi
+#################################################################################
 
 # Add ROS workspaces to bashrc for automatic sourcing
 echo "source /home/dexi/ros2_jazzy/install/setup.bash" >> /home/dexi/.bashrc
