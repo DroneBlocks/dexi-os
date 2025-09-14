@@ -25,7 +25,7 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 #################################### update the OS ####################################
 log "Updating system packages..."
 apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1
-apt-get install -y vim >/dev/null 2>&1
+apt-get install -y vim libi2c-dev >/dev/null 2>&1
 log "System packages updated successfully"
 #######################################################################################
 
