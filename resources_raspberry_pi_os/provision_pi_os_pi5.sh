@@ -25,6 +25,7 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 #################################### update the OS ####################################
 log "Updating system packages..."
 apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1
+apt-get install -y vim >/dev/null 2>&1
 log "System packages updated successfully"
 #######################################################################################
 
@@ -89,6 +90,7 @@ colcon build --packages-select cv_bridge
 colcon build --packages-select apriltag
 colcon build --packages-select apriltag_msgs
 colcon build --packages-select topic_tools_interfaces
+colcon build --packages-select topic_tools
 colcon build --packages-select compressed_image_transport
 colcon build --packages-select compressed_depth_image_transport
 apt install -y libtheora-dev
@@ -115,9 +117,6 @@ colcon build --packages-select dexi_bringup
 cd /home/dexi/dexi_ws/src/dexi_bringup/scripts
 ./install.bash
 
-# Servo control
-apt install -y libi2c-dev
-colcon build --packages-select ros2_pca9685
 
 # BEGIN MAVLINK ROUTER
 sudo apt install -y meson ninja-build pkg-config gcc g++ systemd
@@ -133,6 +132,16 @@ rm -rf mavlink-router
 mkdir -p /etc/mavlink-router
 cp /home/dexi/dexi_ws/src/dexi_bringup/config/mavlink-router/main.conf /etc/mavlink-router/main.conf
 systemctl enable mavlink-router.service
+
+# Create systemd override for improved mavlink-router service configuration
+mkdir -p /etc/systemd/system/mavlink-router.service.d
+cat > /etc/systemd/system/mavlink-router.service.d/override.conf << 'EOF'
+[Service]
+ExecStart=
+ExecStart=/usr/bin/mavlink-routerd --syslog
+Restart=on-failure
+RestartSec=5
+EOF
 # END MAVLINK ROUTER
 
 ################################ DEXI NETWORKING ################################
@@ -211,6 +220,18 @@ if [ -f "/tmp/resources/setup_docker_containers.sh" ]; then
 else
     log "ERROR: Docker setup script not found at /tmp/resources/setup_docker_containers.sh"
     ls -la /tmp/resources/ || log "Could not list /tmp/resources/"
+fi
+#################################################################################
+
+################################ CODE-SERVER SETUP ################################
+log "Running code-server setup script..."
+if [ -f "/tmp/resources/setup_code_server.sh" ]; then
+    log "Code-server setup script found, executing..."
+    chmod +x /tmp/resources/setup_code_server.sh
+    /tmp/resources/setup_code_server.sh
+    log "Code-server setup script completed"
+else
+    log "ERROR: Code-server setup script not found at /tmp/resources/setup_code_server.sh"
 fi
 #################################################################################
 
