@@ -71,6 +71,9 @@ pip install --break-system-packages adafruit-circuitpython-neopixel
 pip install --break-system-packages adafruit-circuitpython-led-animation
 colcon build --packages-select dexi_led
 
+# DEXI GPIO
+colcon build --packages-select dexi_gpio
+
 # Dependencies for DEXI CPP
 cd /home/dexi
 wget http://abyz.me.uk/lg/lg.zip
@@ -202,16 +205,6 @@ cd /
 rm -rf /tmp/dexi-networking
 #################################################################################
 
-################################ NODE-RED SETUP ################################
-log "Setting up Node-RED repository..."
-if [ ! -d "/home/dexi/node-red-dexi" ]; then
-    git clone https://github.com/DroneBlocks/node-red-dexi /home/dexi/node-red-dexi
-    chown -R dexi:dexi /home/dexi/node-red-dexi
-    log "Node-RED repository cloned successfully"
-else
-    log "Node-RED repository already exists"
-fi
-#################################################################################
 
 ################################ DOCKER CONTAINERS ################################
 log "Running Docker containers setup script..."
