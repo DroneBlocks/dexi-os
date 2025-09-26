@@ -26,6 +26,7 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 log "Updating system packages..."
 apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1
 apt-get install -y vim libi2c-dev >/dev/null 2>&1
+apt remove modemmanager -y >/dev/null 2>&1
 log "System packages updated successfully"
 #######################################################################################
 
@@ -35,7 +36,7 @@ rm -rf /home/dexi/dexi_ws/*
 mkdir -p /home/dexi/dexi_ws/src
 
 cd /home/dexi/dexi_ws
-git clone http://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
+git clone -b hotfix/rollback_px4_1.15.4 http://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
@@ -89,6 +90,7 @@ cd /home/dexi/dexi_ws
 # DEXI CPP
 colcon build --packages-select px4_msgs
 colcon build --packages-select dexi_cpp
+colcon build --packages-select dexi_offboard
 
 # April tag dependencies
 colcon build --packages-select image_geometry
@@ -149,6 +151,21 @@ Restart=on-failure
 RestartSec=5
 EOF
 # END MAVLINK ROUTER
+
+#################################### clone ark repo ###################################
+cd /home/dexi
+git clone https://github.com/DroneBlocks/ark_companion_scripts.git /home/dexi/ark_companion_scripts
+cd /home/dexi/ark_companion_scripts
+
+# Copy scripts to /usr/bin
+echo "Installing scripts"
+for file in "pi/scripts/"*; do
+    cp $file /usr/bin
+done
+
+# Copy PX4 firmware file
+cp /tmp/resources/ark_pi6x_default_v1.15.4.px4 /home/dexi/
+#######################################################################################
 
 ################################ DEXI NETWORKING ################################
 log "Setting up DEXI networking..."

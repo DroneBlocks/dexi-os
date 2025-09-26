@@ -26,6 +26,7 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 log "Updating system packages..."
 apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1
 apt-get install -y vim libi2c-dev >/dev/null 2>&1
+apt remove modemmanager -y >/dev/null 2>&1
 log "System packages updated successfully"
 #######################################################################################
 
@@ -83,6 +84,7 @@ cd /home/dexi/dexi_ws
 # DEXI CPP
 colcon build --packages-select px4_msgs
 colcon build --packages-select dexi_cpp
+colcon build --packages-select dexi_offboard
 
 # April tag dependencies
 colcon build --packages-select image_geometry
