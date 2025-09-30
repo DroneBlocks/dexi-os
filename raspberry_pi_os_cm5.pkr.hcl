@@ -4,13 +4,13 @@ variable "provision_script" {
   default     = "resources_raspberry_pi_os/provision_pi_os_cm5.sh"
 }
 
-source "arm" "raspberry_pi_os_pi5" {
+source "arm" "raspberry_pi_os_cm5" {
   file_urls             = ["file:///build/base_images/bookwork_jazzy_docker_shrinked.img.gz.xz"]
   file_checksum_type    = "none"  # Skip checksum verification for local files
   file_target_extension = "xz"
   file_unarchive_cmd    = ["xz", "--decompress", "$ARCHIVE_PATH"]
   image_build_method    = "resize"
-  image_path            = "dexi_raspberry_pi_os_pi5.img"
+  image_path            = "dexi_raspberry_pi_os_cm5.img"
   image_size            = "30G"
   image_type            = "dos"
   image_partitions {
@@ -35,7 +35,7 @@ source "arm" "raspberry_pi_os_pi5" {
 }
 
 build {
-  sources = ["source.arm.raspberry_pi_os_pi5"]
+  sources = ["source.arm.raspberry_pi_os_cm5"]
   provisioner "file" {
     source = "resources_raspberry_pi_os"
     destination = "/tmp/resources"
