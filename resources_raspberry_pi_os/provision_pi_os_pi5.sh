@@ -16,6 +16,9 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
+# Source shared apt packages
+source /tmp/resources/apt_packages.sh
+
 ############################## set up the build processs ##############################
 # do this so apt has a dns resolver
 mkdir -p /run/systemd/resolve
@@ -25,8 +28,7 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 #################################### update the OS ####################################
 log "Updating system packages..."
 apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1
-apt-get install -y vim libi2c-dev >/dev/null 2>&1
-apt remove modemmanager -y >/dev/null 2>&1
+install_common_packages
 log "System packages updated successfully"
 #######################################################################################
 
@@ -95,7 +97,6 @@ colcon build --packages-select topic_tools_interfaces
 colcon build --packages-select topic_tools
 colcon build --packages-select compressed_image_transport
 colcon build --packages-select compressed_depth_image_transport
-apt install -y libtheora-dev
 colcon build --packages-select theora_image_transport
 colcon build --packages-select zstd_image_transport
 colcon build --packages-select image_transport_plugins
@@ -121,7 +122,6 @@ cd /home/dexi/dexi_ws/src/dexi_bringup/scripts
 
 
 # BEGIN MAVLINK ROUTER
-sudo apt install -y meson ninja-build pkg-config gcc g++ systemd
 cd /home/dexi
 git clone https://github.com/mavlink-router/mavlink-router
 cd mavlink-router
