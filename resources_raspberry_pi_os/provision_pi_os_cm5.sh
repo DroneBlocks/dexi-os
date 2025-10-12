@@ -44,8 +44,8 @@ source /home/dexi/ros2_jazzy/install/setup.bash
 
 # Put configs into place
 echo "Writing config.txt contents to /boot/config.txt..."
-cat /home/dexi/dexi_ws/src/dexi_bringup/config/pi5/config.txt > /boot/config.txt
-cat /home/dexi/dexi_ws/src/dexi_bringup/config/pi5/cmdline.txt > /boot/cmdline.txt
+cat /home/dexi/dexi_ws/src/dexi_bringup/config/cm5/config.txt > /boot/config.txt
+cat /home/dexi/dexi_ws/src/dexi_bringup/config/cm5/cmdline.txt > /boot/cmdline.txt
 
 ########################### enable i2c module #########################################
 # Add i2c-dev module to /etc/modules for automatic loading on boot
@@ -86,7 +86,6 @@ cd /home/dexi/dexi_ws
 # DEXI CPP
 colcon build --packages-select px4_msgs
 colcon build --packages-select dexi_cpp
-colcon build --packages-select dexi_offboard
 
 # April tag dependencies
 colcon build --packages-select image_geometry
@@ -101,12 +100,15 @@ colcon build --packages-select theora_image_transport
 colcon build --packages-select zstd_image_transport
 colcon build --packages-select image_transport_plugins
 
-# Remvove camera_ros dependency 
+# Remove camera_ros dependency 
 sed -i '/<exec_depend>camera_ros<\/exec_depend>/d' /home/dexi/dexi_ws/src/apriltag_ros/package.xml
 colcon build --packages-select apriltag_ros
 
 # DEXI camera
-# Right now this is the USB camera for Pi 5
+# Right now this is the CSI camera for CM5
+install_camera_packages
+colcon build --packages-select camera_ros
+# Build dexi_camera so we have the calibration file accessible to the camera_ros node
 colcon build --packages-select dexi_camera
 
 # DEXI yolo

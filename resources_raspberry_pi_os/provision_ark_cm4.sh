@@ -16,6 +16,9 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
+# Source shared apt packages
+source /tmp/resources/apt_packages.sh
+
 ############################## set up the build processs ##############################
 # do this so apt has a dns resolver
 mkdir -p /run/systemd/resolve
@@ -25,7 +28,7 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 #################################### update the OS ####################################
 log "Updating system packages..."
 apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1
-apt-get install -y vim libi2c-dev >/dev/null 2>&1
+install_common_packages
 log "System packages updated successfully"
 #######################################################################################
 
@@ -35,7 +38,7 @@ rm -rf /home/dexi/dexi_ws/*
 mkdir -p /home/dexi/dexi_ws/src
 
 cd /home/dexi/dexi_ws
-git clone http://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
+git clone -b hotfix/rollback_px4_1.15.4 http://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
@@ -65,7 +68,10 @@ colcon build --packages-select micro_ros_agent
 # DEXI interfaces
 colcon build --packages-select dexi_interfaces
 
-# DEXI LED
+# DEXI LED - checkout specific branch with CM4 ripple loading effects
+cd /home/dexi/dexi_ws/src/dexi_led
+git checkout add-cm4-ripple-loading-effects
+cd /home/dexi/dexi_ws
 pip install --break-system-packages adafruit-blinka
 pip install --break-system-packages adafruit-circuitpython-neopixel
 pip install --break-system-packages adafruit-circuitpython-led-animation
@@ -89,6 +95,7 @@ cd /home/dexi/dexi_ws
 # DEXI CPP
 colcon build --packages-select px4_msgs
 colcon build --packages-select dexi_cpp
+colcon build --packages-select dexi_offboard
 
 # April tag dependencies
 colcon build --packages-select image_geometry
@@ -99,14 +106,13 @@ colcon build --packages-select topic_tools_interfaces
 colcon build --packages-select topic_tools
 colcon build --packages-select compressed_image_transport
 colcon build --packages-select compressed_depth_image_transport
-apt install -y libtheora-dev
 colcon build --packages-select theora_image_transport
 colcon build --packages-select zstd_image_transport
 colcon build --packages-select image_transport_plugins
 
 # DEXI camera
 # Right now this is the CSI camera for CM4
-apt install -y libcamera-dev
+install_camera_packages
 colcon build --packages-select camera_ros
 # Build dexi_camera so we have the calibration file accessible to the camera_ros node
 colcon build --packages-select dexi_camera
@@ -125,7 +131,6 @@ cd /home/dexi/dexi_ws/src/dexi_bringup/scripts
 ./install.bash
 
 # BEGIN MAVLINK ROUTER
-sudo apt install -y meson ninja-build pkg-config gcc g++ systemd
 cd /home/dexi
 git clone https://github.com/mavlink-router/mavlink-router
 cd mavlink-router
@@ -149,6 +154,21 @@ Restart=on-failure
 RestartSec=5
 EOF
 # END MAVLINK ROUTER
+
+#################################### clone ark repo ###################################
+cd /home/dexi
+git clone https://github.com/DroneBlocks/ark_companion_scripts.git /home/dexi/ark_companion_scripts
+cd /home/dexi/ark_companion_scripts
+
+# Copy scripts to /usr/bin
+echo "Installing scripts"
+for file in "pi/scripts/"*; do
+    cp $file /usr/bin
+done
+
+# Copy PX4 firmware file
+cp /tmp/resources/ark_pi6x_default_v1.15.4.px4 /home/dexi/
+#######################################################################################
 
 ################################ DEXI NETWORKING ################################
 log "Setting up DEXI networking..."
