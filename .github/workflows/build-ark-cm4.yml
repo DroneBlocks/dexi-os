@@ -1,0 +1,38 @@
+name: Build ARK CM4 Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_to_release:
+        description: 'Create a GitHub release with the image'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Docker is running
+        run: docker info
+
+      - name: Build ARK CM4 image
+        run: |
+          chmod +x build_raspberry_pi_os_ark_cm4.sh
+          ./build_raspberry_pi_os_ark_cm4.sh
+
+      - name: Compress image
+        run: |
+          zip dexi_raspberry_pi_os_ark_cm4.img.zip dexi_raspberry_pi_os_ark_cm4.img
+          ls -lh dexi_raspberry_pi_os_ark_cm4.img.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dexi-ark-cm4-image
+          path: dexi_raspberry_pi_os_ark_cm4.img.zip
+          retention-days: 7
