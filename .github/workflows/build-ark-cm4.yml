@@ -20,12 +20,18 @@ jobs:
       - name: Check Docker is running
         run: docker info
 
+      - name: Prepare temp directory
+        run: |
+          mkdir -p /tmp/packer-build
+          rm -rf /tmp/packer-build/*
+
       - name: Build ARK CM4 image
         run: |
           docker run --rm --privileged \
             -v /dev:/dev \
             -v ${PWD}:/build \
             -v /Users/db/_dev/dexi/dexi-os/base_images:/build/base_images \
+            -v /tmp/packer-build:/tmp \
             mkaczanowski/packer-builder-arm:latest build ./raspberry_pi_os_ark_cm4.pkr.hcl
 
       - name: Compress image
