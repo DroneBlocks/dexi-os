@@ -20,6 +20,11 @@ jobs:
       - name: Check Docker is running
         run: docker info
 
+      - name: Link base images
+        run: |
+          ln -sf /Users/db/_dev/dexi/dexi-os/base_images base_images
+          ls -lh base_images/
+
       - name: Build ARK CM4 image
         run: |
           chmod +x build_raspberry_pi_os_ark_cm4.sh
