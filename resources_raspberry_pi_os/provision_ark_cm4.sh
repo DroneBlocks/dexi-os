@@ -38,7 +38,7 @@ rm -rf /home/dexi/dexi_ws/*
 mkdir -p /home/dexi/dexi_ws/src
 
 cd /home/dexi/dexi_ws
-git clone -b hotfix/rollback_px4_1.15.4 http://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
+git clone -b main http://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
@@ -52,6 +52,9 @@ cat /home/dexi/dexi_ws/src/dexi_bringup/config/cm4/cmdline.txt > /boot/cmdline.t
 # Add i2c-dev module to /etc/modules for automatic loading on boot
 echo "i2c-dev" >> /etc/modules
 #######################################################################################
+
+# Rosbridge Python dependencies
+pip install --break-system-packages cbor2
 
 # Rosbridge
 colcon build --packages-select rosbridge_test_msgs
@@ -70,7 +73,6 @@ colcon build --packages-select dexi_interfaces
 
 # DEXI LED - checkout specific branch with CM4 ripple loading effects
 cd /home/dexi/dexi_ws/src/dexi_led
-git checkout add-cm4-ripple-loading-effects
 cd /home/dexi/dexi_ws
 pip install --break-system-packages adafruit-blinka
 pip install --break-system-packages adafruit-circuitpython-neopixel
