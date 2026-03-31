@@ -43,11 +43,40 @@ ros2 pkg list | grep dexi
 docker run -it --rm --privileged --network host -v /dev:/dev dexi-ros2-jazzy bash
 
 # Inside container:
-ros2 run usb_cam usb_cam_node_exe --ros-args -p video_device:=/dev/video0 &
+ros2 run usb_cam usb_cam_node_exe --ros-args \
+  -p video_device:=/dev/video0 \
+  -p framerate:=15.0 \
+  -p image_width:=1280 \
+  -p image_height:=720 \
+  -p pixel_format:=mjpeg2rgb \
+  -p brightness:=0 \
+  -p autoexposure:=1 \
+  -p exposure:=200 \
+  -p autofocus:=false \
+  -p focus:=144 \
+  -r /image_raw:=/cam0/image_raw \
+  -r /image_raw/compressed:=/cam0/image_raw/compressed \
+  -r /camera_info:=/cam0/camera_info &
+
 ros2 run apriltag_ros apriltag_node --ros-args \
-  -r image_rect:=/image_raw \
-  -r camera_info:=/camera_info
+  -r image_rect:=/cam0/image_raw \
+  -r camera_info:=/cam0/camera_info \
+  -r /detections:=/apriltag_detections
 ```
+
+#### Arducam USB Camera Settings
+
+The Arducam 12MP UVC camera flickers with default settings. These parameters fix it:
+
+| Parameter | Value | Why |
+|-----------|-------|-----|
+| `autoexposure` | `1` (Manual) | Prevents frame-to-frame exposure variation |
+| `exposure` | `200` | Fixed exposure value (adjust for your lighting) |
+| `brightness` | `0` | Default; usb_cam overrides to 50 which overexposes |
+| `autofocus` | `false` | Prevents focus hunting that disrupts frames |
+| `focus` | `144` | Fixed focus (default value) |
+
+To adjust exposure for different lighting, try values between 50 (bright) and 500 (dim).
 
 ### Full Stack (MAVLink + ROS2)
 
