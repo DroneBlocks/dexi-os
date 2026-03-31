@@ -32,7 +32,7 @@ RUN git clone -b main https://github.com/droneblocks/dexi_bringup src/dexi_bring
     && vcs import --input src/dexi_bringup/dexi.repos src/
 
 # Rosbridge Python dependencies
-RUN pip install --break-system-packages cbor2
+RUN pip install --break-system-packages cbor2 tornado twisted pymongo Pillow
 
 # Source ROS2 for all subsequent build steps
 ENV ROS2_SETUP=/opt/ros/jazzy/setup.bash
