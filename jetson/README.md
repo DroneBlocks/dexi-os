@@ -29,8 +29,24 @@ The build compiles natively on aarch64 — no QEMU emulation needed, so it's muc
 
 ## Run
 
+### Quick Start (Full Stack)
+
 ```bash
-# Interactive shell
+# Start everything: camera, rosbridge, apriltag, yolo, web UI
+sudo ./start.sh
+
+# Without YOLO
+sudo ./start.sh --no-yolo
+
+# Without AprilTag
+sudo ./start.sh --no-apriltag
+```
+
+Then open `http://<jetson-ip>:3000` in your browser.
+
+### Interactive Shell
+
+```bash
 docker run -it --rm --privileged --network host -v /dev:/dev dexi-ros2-jazzy
 
 # Inside the container:
