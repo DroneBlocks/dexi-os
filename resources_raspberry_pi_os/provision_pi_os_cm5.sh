@@ -86,6 +86,7 @@ cd /home/dexi/dexi_ws
 # DEXI CPP
 colcon build --packages-select px4_msgs
 colcon build --packages-select dexi_cpp
+colcon build --packages-select dexi_offboard
 
 # April tag dependencies
 colcon build --packages-select image_geometry
@@ -114,6 +115,9 @@ colcon build --packages-select dexi_camera
 # DEXI yolo
 pip install --break-system-packages onnxruntime
 colcon build --packages-select dexi_yolo
+
+# DEXI color detection
+colcon build --packages-select dexi_color_detection
 
 # DEXI bringup
 colcon build --packages-select dexi_bringup
@@ -147,6 +151,21 @@ Restart=on-failure
 RestartSec=5
 EOF
 # END MAVLINK ROUTER
+
+#################################### clone ark repo ###################################
+cd /home/dexi
+git clone https://github.com/DroneBlocks/ark_companion_scripts.git /home/dexi/ark_companion_scripts
+cd /home/dexi/ark_companion_scripts
+
+# Copy scripts to /usr/bin
+echo "Installing scripts"
+for file in "pi/scripts/"*; do
+    cp $file /usr/bin
+done
+
+# Copy PX4 firmware file
+cp /tmp/resources/ark_pi6x_default_v1.16.1.px4 /home/dexi/
+#######################################################################################
 
 ################################ DEXI NETWORKING ################################
 log "Setting up DEXI networking..."

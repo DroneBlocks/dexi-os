@@ -19,11 +19,6 @@ echo "127.0.0.1 $(hostnamectl hostname)" >> /etc/hosts
 # Change dexi directory permissions
 chown -R dexi:dexi /home/dexi
 
-# Load DroneBlocks image from provision script since Docker isn't readily available during provisioning
-docker load < /home/dexi/docker-drag/droneblocks_dexi-droneblocks.tar
-docker load < /home/dexi/docker-drag/droneblocks_dexi-node-red.tar
-docker run -d --restart unless-stopped -p 80:80 --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
-docker run -d --restart unless-stopped -p 1880:1880 -v /home/dexi/node-red-dexi/flows:/data --name dexi-node-red droneblocks/dexi-node-red:latest
-rm -rf /home/dexi/docker-drag
+# Docker containers are handled by dexi-containers-start.service (setup_docker_containers.sh)
 
 reboot now

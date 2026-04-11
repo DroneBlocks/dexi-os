@@ -38,7 +38,7 @@ rm -rf /home/dexi/dexi_ws/*
 mkdir -p /home/dexi/dexi_ws/src
 
 cd /home/dexi/dexi_ws
-git clone -b main http://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
+git clone -b feature/dexi-platform-params https://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
@@ -74,6 +74,7 @@ colcon build --packages-select dexi_interfaces
 # DEXI LED - checkout specific branch with CM4 ripple loading effects
 cd /home/dexi/dexi_ws/src/dexi_led
 cd /home/dexi/dexi_ws
+pip install --break-system-packages rpi-ws281x
 pip install --break-system-packages adafruit-blinka
 pip install --break-system-packages adafruit-circuitpython-neopixel
 pip install --break-system-packages adafruit-circuitpython-led-animation
@@ -84,7 +85,7 @@ colcon build --packages-select dexi_gpio
 
 # Dependencies for DEXI CPP
 cd /home/dexi
-wget http://abyz.me.uk/lg/lg.zip
+wget https://abyz.me.uk/lg/lg.zip
 unzip lg.zip
 cd lg
 make
@@ -124,6 +125,9 @@ colcon build --packages-select apriltag_ros
 # DEXI yolo
 pip install --break-system-packages onnxruntime
 colcon build --packages-select dexi_yolo
+
+# DEXI color detection
+colcon build --packages-select dexi_color_detection
 
 # DEXI bringup
 colcon build --packages-select dexi_bringup
@@ -169,7 +173,7 @@ for file in "pi/scripts/"*; do
 done
 
 # Copy PX4 firmware file
-cp /tmp/resources/ark_pi6x_default_v1.15.4.px4 /home/dexi/
+cp /tmp/resources/ark_pi6x_default_v1.16.1.px4 /home/dexi/
 #######################################################################################
 
 ################################ DEXI NETWORKING ################################

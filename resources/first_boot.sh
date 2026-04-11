@@ -22,7 +22,7 @@ chown -R dexi:dexi /home/dexi
 # Load DroneBlocks image from provision script since Docker isn't readily available during provisioning
 docker load < /home/dexi/docker-drag/droneblocks_dexi-droneblocks.tar
 docker load < /home/dexi/docker-drag/droneblocks_dexi-node-red.tar
-docker run -d --restart unless-stopped -p 80:80 --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
+docker run -d --restart unless-stopped -p 80:3000 --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
 docker run -d --restart unless-stopped -p 1880:1880 -v /home/dexi/node-red-dexi/flows:/data --name dexi-node-red droneblocks/dexi-node-red:latest
 rm -rf /home/dexi/docker-drag
 

@@ -59,39 +59,39 @@ echo "Checking for Docker images..."
 echo "Current Docker images:"
 docker images
 
-# Load DEXI DroneBlocks image
+# Load DEXI DroneBlocks image (always load from tar if present, replacing any stale base image)
 if [ -f /home/dexi/dexi-droneblocks.tar ]; then
-    echo "DEXI DroneBlocks archive file found"
-    if docker images droneblocks/dexi-droneblocks:latest | grep -q "droneblocks/dexi-droneblocks"; then
-        echo "DEXI DroneBlocks image already exists, skipping load"
-    else
-        echo "DEXI DroneBlocks image not found, loading from archive..."
-        if docker load -i /home/dexi/dexi-droneblocks.tar; then
-            echo "DEXI DroneBlocks image loaded successfully, removing archive"
-            rm /home/dexi/dexi-droneblocks.tar
-        else
-            echo "Failed to load DEXI DroneBlocks image"
-            exit 1
+    echo "DEXI DroneBlocks archive file found, loading..."
+    if docker load -i /home/dexi/dexi-droneblocks.tar; then
+        LOADED_TAG=$(docker images droneblocks/dexi-droneblocks --format "{{.Tag}}" | grep -v latest | head -1)
+        if [ -n "$LOADED_TAG" ]; then
+            docker tag droneblocks/dexi-droneblocks:$LOADED_TAG droneblocks/dexi-droneblocks:latest
+            echo "Tagged droneblocks/dexi-droneblocks:$LOADED_TAG as latest"
         fi
+        echo "DEXI DroneBlocks image loaded successfully, removing archive"
+        rm /home/dexi/dexi-droneblocks.tar
+    else
+        echo "Failed to load DEXI DroneBlocks image"
+        exit 1
     fi
 else
     echo "No DEXI DroneBlocks archive file found"
 fi
 
-# Load DroneBlocks Node-RED image
+# Load DroneBlocks Node-RED image (always load from tar if present)
 if [ -f /home/dexi/dexi-node-red.tar ]; then
-    echo "DroneBlocks Node-RED archive file found"
-    if docker images droneblocks/dexi-node-red:latest | grep -q "droneblocks/dexi-node-red"; then
-        echo "DroneBlocks Node-RED image already exists, skipping load"
-    else
-        echo "DroneBlocks Node-RED image not found, loading from archive..."
-        if docker load -i /home/dexi/dexi-node-red.tar; then
-            echo "DroneBlocks Node-RED image loaded successfully, removing archive"
-            rm /home/dexi/dexi-node-red.tar
-        else
-            echo "Failed to load DroneBlocks Node-RED image"
-            exit 1
+    echo "DroneBlocks Node-RED archive file found, loading..."
+    if docker load -i /home/dexi/dexi-node-red.tar; then
+        LOADED_TAG=$(docker images droneblocks/dexi-node-red --format "{{.Tag}}" | grep -v latest | head -1)
+        if [ -n "$LOADED_TAG" ]; then
+            docker tag droneblocks/dexi-node-red:$LOADED_TAG droneblocks/dexi-node-red:latest
+            echo "Tagged droneblocks/dexi-node-red:$LOADED_TAG as latest"
         fi
+        echo "DroneBlocks Node-RED image loaded successfully, removing archive"
+        rm /home/dexi/dexi-node-red.tar
+    else
+        echo "Failed to load DroneBlocks Node-RED image"
+        exit 1
     fi
 else
     echo "No DroneBlocks Node-RED archive file found"
@@ -118,7 +118,9 @@ if docker ps --format "table {{.Names}}" | grep -q "dexi-droneblocks"; then
     echo "DEXI DroneBlocks container already running"
 else
     echo "Starting DEXI DroneBlocks container..."
-    docker run -d --restart unless-stopped -p 80:80 --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
+    docker run -d --restart unless-stopped -p 80:3000 \
+        -v /proc/device-tree/model:/etc/device-model:ro \
+        --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
     echo "DEXI DroneBlocks container started"
 fi
 

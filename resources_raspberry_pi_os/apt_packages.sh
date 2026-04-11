@@ -11,7 +11,7 @@ install_common_packages() {
     apt-get install -y vim libi2c-dev tmux >/dev/null 2>&1
     apt remove modemmanager -y >/dev/null 2>&1
     apt install -y libtheora-dev >/dev/null 2>&1
-    apt install -y meson ninja-build pkg-config gcc g++ systemd >/dev/null 2>&1
+    apt install -y meson ninja-build pkg-config gcc g++ systemd python3-cbor2 >/dev/null 2>&1
     log "Common apt packages installed successfully"
 }
 
