@@ -38,7 +38,7 @@ rm -rf /home/dexi/dexi_ws/*
 mkdir -p /home/dexi/dexi_ws/src
 
 cd /home/dexi/dexi_ws
-git clone http://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
+git clone -b main https://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
@@ -70,18 +70,6 @@ colcon build --packages-select dexi_interfaces
 # DEXI LED
 pip install --break-system-packages pi5neo
 colcon build --packages-select dexi_led
-
-# Dependencies for DEXI CPP
-cd /home/dexi
-wget http://abyz.me.uk/lg/lg.zip
-unzip lg.zip
-cd lg
-make
-make install
-cd ..
-rm -rf lg.zip
-rm -rf lg
-cd /home/dexi/dexi_ws
 
 # DEXI CPP
 colcon build --packages-select px4_msgs
