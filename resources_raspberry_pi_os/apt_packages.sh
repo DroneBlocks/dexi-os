@@ -21,3 +21,10 @@ install_camera_packages() {
     apt install -y libcamera-dev >/dev/null 2>&1
     log "Camera packages installed successfully"
 }
+
+# Pigpio (CM4 servo PWM via DMA daemon)
+install_pigpio_packages() {
+    log "Installing pigpio packages..."
+    apt install -y pigpio python3-pigpio >/dev/null 2>&1
+    log "Pigpio packages installed successfully"
+}

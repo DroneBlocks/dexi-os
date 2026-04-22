@@ -29,6 +29,8 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 log "Updating system packages..."
 apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1
 install_common_packages
+install_pigpio_packages
+systemctl enable pigpiod
 log "System packages updated successfully"
 #######################################################################################
 
