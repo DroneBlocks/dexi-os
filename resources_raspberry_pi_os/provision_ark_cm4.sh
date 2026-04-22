@@ -85,18 +85,6 @@ colcon build --packages-select dexi_led
 # DEXI GPIO
 colcon build --packages-select dexi_gpio
 
-# Dependencies for DEXI CPP
-cd /home/dexi
-wget https://abyz.me.uk/lg/lg.zip
-unzip lg.zip
-cd lg
-make
-make install
-cd ..
-rm -rf lg.zip
-rm -rf lg
-cd /home/dexi/dexi_ws
-
 # DEXI CPP
 colcon build --packages-select px4_msgs
 colcon build --packages-select dexi_cpp
