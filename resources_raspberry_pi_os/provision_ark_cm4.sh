@@ -29,6 +29,8 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 log "Updating system packages..."
 apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1
 install_common_packages
+install_pigpio_packages
+systemctl enable pigpiod
 log "System packages updated successfully"
 #######################################################################################
 
@@ -38,7 +40,7 @@ rm -rf /home/dexi/dexi_ws/*
 mkdir -p /home/dexi/dexi_ws/src
 
 cd /home/dexi/dexi_ws
-git clone -b feature/dexi-platform-params https://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
+git clone -b main https://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
