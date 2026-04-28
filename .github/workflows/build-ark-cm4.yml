@@ -3,15 +3,24 @@ name: Build ARK CM4 Image
 on:
   workflow_dispatch:
     inputs:
-      upload_to_release:
-        description: 'Create a GitHub release with the image'
-        required: false
-        default: false
-        type: boolean
+      version:
+        description: 'Version tag for R2 path (e.g. v0.21)'
+        required: true
+        type: string
+      runner_label:
+        description: 'Runner to dispatch to'
+        required: true
+        default: pi5
+        type: choice
+        options:
+          - pi5
+          - macOS
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on:
+      - self-hosted
+      - ${{ inputs.runner_label }}
 
     steps:
       - name: Checkout repository
@@ -19,6 +28,15 @@ jobs:
 
       - name: Check Docker is running
         run: docker info
+
+      - name: Stage build assets from R2
+        run: |
+          mkdir -p base_images resources_raspberry_pi_os
+          rclone copyto r2:dexi-os-releases/build-assets/bookwork_jazzy_docker_shrinked.img.gz.xz base_images/bookwork_jazzy_docker_shrinked.img.gz.xz
+          rclone copyto r2:dexi-os-releases/build-assets/dexi-droneblocks.tar resources_raspberry_pi_os/dexi-droneblocks.tar
+          rclone copyto r2:dexi-os-releases/build-assets/dexi-node-red.tar resources_raspberry_pi_os/dexi-node-red.tar
+          rclone copyto r2:dexi-os-releases/build-assets/ark_pi6x_default_v1.16.1-flow-fix.px4 resources_raspberry_pi_os/ark_pi6x_default_v1.16.1-flow-fix.px4
+          ls -lh base_images/ resources_raspberry_pi_os/dexi-*.tar resources_raspberry_pi_os/*.px4
 
       - name: Prepare temp directory
         run: |
@@ -30,18 +48,28 @@ jobs:
           docker run --rm --privileged \
             -v /dev:/dev \
             -v ${PWD}:/build \
-            -v /Users/db/_dev/dexi/dexi-os/base_images:/build/base_images \
+            -v ${PWD}/base_images:/build/base_images \
             -v /tmp/packer-build:/tmp \
             mkaczanowski/packer-builder-arm:latest build ./raspberry_pi_os_ark_cm4.pkr.hcl
 
       - name: Compress image
         run: |
-          zip dexi_raspberry_pi_os_ark_cm4.img.zip dexi_raspberry_pi_os_ark_cm4.img
+          zip -1 dexi_raspberry_pi_os_ark_cm4.img.zip dexi_raspberry_pi_os_ark_cm4.img
           ls -lh dexi_raspberry_pi_os_ark_cm4.img.zip
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dexi-ark-cm4-image
-          path: dexi_raspberry_pi_os_ark_cm4.img.zip
-          retention-days: 7
+      - name: Upload to R2
+        run: |
+          rclone copyto dexi_raspberry_pi_os_ark_cm4.img.zip \
+            r2:dexi-os-releases/${{ inputs.version }}/dexi_raspberry_pi_os_ark_cm4.img.zip \
+            --s3-chunk-size 64M --s3-upload-concurrency 8
+
+      - name: Print download URL
+        run: |
+          echo "::notice title=Image published::https://pub-7efc16585b2a4b5ab550489e8d8d5b33.r2.dev/${{ inputs.version }}/dexi_raspberry_pi_os_ark_cm4.img.zip"
+
+      - name: Cleanup local artifacts
+        if: always()
+        run: |
+          rm -f dexi_raspberry_pi_os_ark_cm4.img.zip
+          rm -f dexi_raspberry_pi_os_ark_cm4.img
+          rm -rf base_images resources_raspberry_pi_os/dexi-*.tar resources_raspberry_pi_os/*.px4
