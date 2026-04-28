@@ -1,0 +1,64 @@
+name: Build CM5 Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag for R2 path (e.g. v0.21)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Docker is running
+        run: docker info
+
+      - name: Stage gitignored resources into workspace
+        env:
+          ASSET_DIR: /Users/db/_dev/dexi/dexi-os/resources_raspberry_pi_os
+        run: |
+          ln -sf "$ASSET_DIR/dexi-droneblocks.tar" resources_raspberry_pi_os/
+          ln -sf "$ASSET_DIR/dexi-node-red.tar" resources_raspberry_pi_os/
+          ln -sf "$ASSET_DIR/ark_pi6x_default_v1.16.1.px4" resources_raspberry_pi_os/
+          ls -lhL resources_raspberry_pi_os/dexi-*.tar resources_raspberry_pi_os/*.px4
+
+      - name: Prepare temp directory
+        run: |
+          mkdir -p /tmp/packer-build
+          rm -rf /tmp/packer-build/*
+
+      - name: Build CM5 image
+        run: |
+          docker run --rm --privileged \
+            -v /dev:/dev \
+            -v ${PWD}:/build \
+            -v /Users/db/_dev/dexi/dexi-os/base_images:/build/base_images \
+            -v /tmp/packer-build:/tmp \
+            mkaczanowski/packer-builder-arm:latest build ./raspberry_pi_os_cm5.pkr.hcl
+
+      - name: Compress image
+        run: |
+          zip -1 dexi_raspberry_pi_os_cm5.img.zip dexi_raspberry_pi_os_cm5.img
+          ls -lh dexi_raspberry_pi_os_cm5.img.zip
+
+      - name: Upload to R2
+        run: |
+          rclone copyto dexi_raspberry_pi_os_cm5.img.zip \
+            r2:dexi-os-releases/${{ inputs.version }}/dexi_raspberry_pi_os_cm5.img.zip \
+            --s3-chunk-size 64M --s3-upload-concurrency 8
+
+      - name: Print download URL
+        run: |
+          echo "::notice title=Image published::https://pub-7efc16585b2a4b5ab550489e8d8d5b33.r2.dev/${{ inputs.version }}/dexi_raspberry_pi_os_cm5.img.zip"
+
+      - name: Cleanup local artifacts
+        if: always()
+        run: |
+          rm -f dexi_raspberry_pi_os_cm5.img.zip
+          rm -f dexi_raspberry_pi_os_cm5.img
