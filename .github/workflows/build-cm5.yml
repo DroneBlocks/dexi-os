@@ -10,9 +10,10 @@ on:
       runner_label:
         description: 'Runner to dispatch to'
         required: true
-        default: pi5
+        default: mac-mini-ny
         type: choice
         options:
+          - mac-mini-ny
           - pi5
           - macOS
 
