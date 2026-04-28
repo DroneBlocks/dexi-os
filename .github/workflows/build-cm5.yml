@@ -39,18 +39,14 @@ jobs:
           rclone copyto r2:dexi-os-releases/build-assets/ark_pi6x_default_v1.16.1.px4 resources_raspberry_pi_os/ark_pi6x_default_v1.16.1.px4
           ls -lh base_images/ resources_raspberry_pi_os/dexi-*.tar resources_raspberry_pi_os/*.px4
 
-      - name: Prepare temp directory
-        run: |
-          mkdir -p /tmp/packer-build
-          rm -rf /tmp/packer-build/*
-
       - name: Build CM5 image
         run: |
+          mkdir -p "$RUNNER_TEMP/packer-build"
           docker run --rm --privileged \
             -v /dev:/dev \
             -v ${PWD}:/build \
             -v ${PWD}/base_images:/build/base_images \
-            -v /tmp/packer-build:/tmp \
+            -v "$RUNNER_TEMP/packer-build:/tmp" \
             mkaczanowski/packer-builder-arm:latest build ./raspberry_pi_os_cm5.pkr.hcl
 
       - name: Compress image
