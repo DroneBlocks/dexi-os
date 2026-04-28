@@ -6,11 +6,11 @@ These builds need ~50GB peak disk, ~8GB RAM, native ARM64 (or amd64 with QEMU), 
 
 ## Currently supported runner platforms
 
-| Platform | Guide | Native ARM64 | Notes |
-|---|---|---|---|
-| Raspberry Pi 5 (8GB) | [pi5.md](pi5.md) | ✅ | Cheapest option (~$170 with NVMe). microSD works but slow |
-| macOS (Mac mini or dev Mac, Apple Silicon) | TBD | ✅ | Fastest option. Headless setup uses colima (not Docker Desktop) |
-| Linux/amd64 (Intel/AMD PC, WSL2, server) | TBD | ❌ — uses QEMU | Slower (~1.5-2× vs ARM hosts) but always-available hardware |
+| Platform | Guide | Native ARM64 | Measured CM5/ARK CM4 build | Notes |
+|---|---|---|---|---|
+| Mac mini (Apple Silicon) | [mac-mini.md](mac-mini.md) | ✅ | **~25 min** | Fastest option. Headless setup via colima (not Docker Desktop) |
+| Raspberry Pi 5 (8GB) | [pi5.md](pi5.md) | ✅ | ~79 min on microSD (~55-65 est. on NVMe) | Cheapest option (~$170 with NVMe). 4K-kernel switch is required |
+| Linux/amd64 (Intel/AMD PC, WSL2, server) | TBD | ❌ — uses QEMU | not yet measured | Likely 1.5-2× slower than ARM hosts due to QEMU |
 
 ## Runner labels
 
@@ -27,9 +27,16 @@ The build pulls these gitignored assets from `r2:dexi-os-releases/build-assets/`
 - `bookwork_jazzy_docker_shrinked.img.gz.xz` — pre-built Pi OS Bookworm + ROS2 Jazzy base image (~3.4GB)
 - `dexi-droneblocks.tar` — DEXI DroneBlocks Docker image
 - `dexi-node-red.tar` — DEXI Node-RED Docker image
-- `ark_pi6x_default_v1.16.1.px4` — ARK PX4 firmware
+- `ark_pi6x_default_v1.16.1.px4` — ARK PX4 firmware (stock)
+- `ark_pi6x_default_v1.16.1-flow-fix.px4` — ARK PX4 firmware (optical-flow fix)
 
 If the R2 bucket is ever rebuilt, repopulate from a known-good runner using `rclone copy`.
+
+## Cross-runner gotcha: bind mounts and `$RUNNER_TEMP`
+
+The workflows bind-mount a host directory into the packer container at `/tmp` for the xz decompression step (~19GB intermediate file). The mount path matters because **colima (used on the Mac mini) only auto-mounts paths under `$HOME` and `/tmp/colima` from the macOS host into its VM** — `/tmp` is NOT shared. Docker Desktop and native Linux Docker both share `/tmp`, but colima is more restrictive.
+
+The workflows use `$RUNNER_TEMP/packer-build` for this mount, which lives under the runner's `_work/_temp` directory — under `$HOME`, so colima shares it. This same path also works on Pi 5 (native Linux Docker) and any other runner. **Don't change this to `/tmp/...` — it'll silently break colima builds with "No space left on device".**
 
 ## Security note
 

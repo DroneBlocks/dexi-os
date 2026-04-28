@@ -156,19 +156,19 @@ The output lands at:
 https://pub-7efc16585b2a4b5ab550489e8d8d5b33.r2.dev/<version>/dexi_raspberry_pi_os_cm5.img.zip
 ```
 
-## Performance expectations
+## Performance
 
-Measured on Pi 5 8GB with microSD (post-4K-kernel switch):
+Measured on Pi 5 8GB with microSD (post-4K-kernel switch), residential gigabit network:
 
-| Step | Pi 5 microSD | Pi 5 NVMe (estimate) | Reference: M2 MacBook |
+| Step | Pi 5 microSD (measured) | Pi 5 NVMe (estimate) | Reference: Mac mini M4 |
 |---|---|---|---|
-| Stage assets from R2 | 1-2 min | 1-2 min | 1-2 min |
-| Build CM5 image (packer) | 40-60 min | 25-35 min | 10-12 min |
-| Compress image (zip -1) | 8-12 min | 6-8 min | 3-4 min |
-| Upload to R2 | ~24 min | ~24 min | ~24 min |
-| **Total** | **~75-95 min** | **~55-65 min** | **~40 min** |
+| Stage assets from R2 | 3m 11s | 2-3 min | 3m 43s |
+| Build CM5 image (packer) | 46m 36s | 25-35 min | 13m 14s |
+| Compress image (zip -1) | 9m 57s | 6-8 min | 2m 54s |
+| Upload to R2 | 19m 09s | ~19 min | 4m 42s |
+| **Total** | **79m 08s** | **~55-65 min** | **24m 47s** |
 
-Upload time is bandwidth-bound and roughly equal across runners on the same network.
+Upload time is bandwidth-bound and depends heavily on the runner's network. Datacenter-grade upload (Mac mini in this measurement) is dramatically faster than residential.
 
 ## If you put this Pi on the same network as a DEXI drone
 
