@@ -1,16 +1,20 @@
-variable "provision_script" {
-  description = "Path to the provision script to use"
+variable "target" {
+  description = "Build target: cm5, ark_cm4, or pi5"
   type        = string
-  default     = "resources_raspberry_pi_os/provision_pi_os_cm5.sh"
+
+  validation {
+    condition     = contains(["cm5", "ark_cm4", "pi5"], var.target)
+    error_message = "target must be one of: cm5, ark_cm4, pi5."
+  }
 }
 
-source "arm" "raspberry_pi_os_cm5" {
+source "arm" "raspberry_pi_os" {
   file_urls             = ["file:///build/base_images/bookwork_jazzy_docker_shrinked.img.gz.xz"]
-  file_checksum_type    = "none"  # Skip checksum verification for local files
+  file_checksum_type    = "none"
   file_target_extension = "xz"
   file_unarchive_cmd    = ["xz", "--decompress", "$ARCHIVE_PATH"]
   image_build_method    = "resize"
-  image_path            = "dexi_raspberry_pi_os_cm5.img"
+  image_path            = "dexi_raspberry_pi_os_${var.target}.img"
   image_size            = "30G"
   image_type            = "dos"
   image_partitions {
@@ -35,12 +39,13 @@ source "arm" "raspberry_pi_os_cm5" {
 }
 
 build {
-  sources = ["source.arm.raspberry_pi_os_cm5"]
+  sources = ["source.arm.raspberry_pi_os"]
   provisioner "file" {
-    source = "resources_raspberry_pi_os"
+    source      = "resources_raspberry_pi_os"
     destination = "/tmp/resources"
   }
   provisioner "shell" {
-    script = var.provision_script
+    script           = "resources_raspberry_pi_os/provision.sh"
+    environment_vars = ["TARGET=${var.target}"]
   }
 }
