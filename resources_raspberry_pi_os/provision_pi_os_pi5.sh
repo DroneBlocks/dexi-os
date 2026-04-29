@@ -233,4 +233,10 @@ fi
 # echo "source /home/dexi/dexi_ws/install/setup.bash" >> /home/dexi/.bashrc
 # echo "source /home/dexi/dexi_ws/install/setup.bash" >> /root/.bashrc
 
+# Embed build version for traceability (readable on device via `cat /etc/dexi-version`)
+if [ -f /tmp/resources/build_version ]; then
+    cp /tmp/resources/build_version /etc/dexi-version
+    log "Embedded version: $(cat /etc/dexi-version)"
+fi
+
 chown -R dexi:dexi /home/dexi

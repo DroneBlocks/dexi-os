@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag for R2 path (e.g. v0.21)'
-        required: true
+        description: 'Version override (leave empty to use VERSION file at repo root)'
+        required: false
         type: string
       runner_label:
         description: 'Runner to dispatch to'
@@ -25,6 +25,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Resolve build version
+        id: version
+        run: |
+          VERSION="${{ inputs.version }}"
+          [ -z "$VERSION" ] && VERSION=$(cat VERSION | tr -d '[:space:]')
+          echo "Building version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "$VERSION" > resources_raspberry_pi_os/build_version
 
       - name: Check Docker is running
         run: docker info
@@ -56,16 +65,16 @@ jobs:
       - name: Upload to R2
         run: |
           rclone copyto dexi_raspberry_pi_os_ark_cm4.img.zip \
-            r2:dexi-os-releases/${{ inputs.version }}/dexi_raspberry_pi_os_ark_cm4.img.zip \
+            r2:dexi-os-releases/${{ steps.version.outputs.version }}/dexi_raspberry_pi_os_ark_cm4.img.zip \
             --s3-chunk-size 64M --s3-upload-concurrency 8
 
       - name: Print download URL
         run: |
-          echo "::notice title=Image published::https://pub-7efc16585b2a4b5ab550489e8d8d5b33.r2.dev/${{ inputs.version }}/dexi_raspberry_pi_os_ark_cm4.img.zip"
+          echo "::notice title=Image published::https://pub-7efc16585b2a4b5ab550489e8d8d5b33.r2.dev/${{ steps.version.outputs.version }}/dexi_raspberry_pi_os_ark_cm4.img.zip"
 
       - name: Cleanup local artifacts
         if: always()
         run: |
           rm -f dexi_raspberry_pi_os_ark_cm4.img.zip
           rm -f dexi_raspberry_pi_os_ark_cm4.img
-          rm -rf base_images resources_raspberry_pi_os/dexi-*.tar resources_raspberry_pi_os/*.px4
+          rm -rf base_images resources_raspberry_pi_os/dexi-*.tar resources_raspberry_pi_os/*.px4 resources_raspberry_pi_os/build_version

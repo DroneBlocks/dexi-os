@@ -1,2 +1,3 @@
 *.img
 .packer_cache/
+resources_raspberry_pi_os/build_version
