@@ -1,0 +1,107 @@
+name: Build DEXI-OS Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Build target'
+        required: true
+        type: choice
+        options:
+          - cm5
+          - ark_cm4
+          - pi5
+      version:
+        description: 'Version override (leave empty to use VERSION file)'
+        required: false
+        type: string
+      runner_label:
+        description: 'Runner to dispatch to'
+        required: true
+        default: mac-mini-ny
+        type: choice
+        options:
+          - mac-mini-ny
+          - pi5
+
+jobs:
+  build:
+    runs-on:
+      - self-hosted
+      - ${{ inputs.runner_label }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve build version
+        id: version
+        run: |
+          VERSION="${{ inputs.version }}"
+          [ -z "$VERSION" ] && VERSION=$(cat VERSION | tr -d '[:space:]')
+          echo "Building target=${{ inputs.target }} version=$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "$VERSION" > resources_raspberry_pi_os/build_version
+
+      - name: Check Docker is running
+        run: docker info
+
+      - name: Stage build assets from R2
+        run: |
+          mkdir -p base_images resources_raspberry_pi_os
+          rclone copyto r2:dexi-os-releases/build-assets/bookwork_jazzy_docker_shrinked.img.gz.xz base_images/bookwork_jazzy_docker_shrinked.img.gz.xz
+          rclone copyto r2:dexi-os-releases/build-assets/dexi-droneblocks.tar resources_raspberry_pi_os/dexi-droneblocks.tar
+          rclone copyto r2:dexi-os-releases/build-assets/dexi-node-red.tar resources_raspberry_pi_os/dexi-node-red.tar
+          case "${{ inputs.target }}" in
+            cm5)
+              rclone copyto r2:dexi-os-releases/build-assets/ark_pi6x_default_v1.16.1.px4 resources_raspberry_pi_os/ark_pi6x_default_v1.16.1.px4
+              ;;
+            ark_cm4)
+              rclone copyto r2:dexi-os-releases/build-assets/ark_pi6x_default_v1.16.1-flow-fix.px4 resources_raspberry_pi_os/ark_pi6x_default_v1.16.1-flow-fix.px4
+              ;;
+            pi5)
+              echo "pi5 target: no PX4 firmware needed"
+              ;;
+          esac
+          ls -lh base_images/ resources_raspberry_pi_os/dexi-*.tar
+          ls -lh resources_raspberry_pi_os/*.px4 2>/dev/null || true
+
+      - name: Build image
+        run: |
+          mkdir -p "$RUNNER_TEMP/packer-build"
+          docker run --rm --privileged \
+            -v /dev:/dev \
+            -v ${PWD}:/build \
+            -v ${PWD}/base_images:/build/base_images \
+            -v "$RUNNER_TEMP/packer-build:/tmp" \
+            mkaczanowski/packer-builder-arm:latest build \
+              -var "target=${{ inputs.target }}" \
+              ./raspberry_pi_os.pkr.hcl
+
+      - name: Compress image
+        run: |
+          IMG="dexi_raspberry_pi_os_${{ inputs.target }}.img"
+          zip -1 "${IMG}.zip" "$IMG"
+          ls -lh "${IMG}.zip"
+
+      - name: Upload to R2
+        run: |
+          IMG="dexi_raspberry_pi_os_${{ inputs.target }}.img.zip"
+          rclone copyto "$IMG" \
+            r2:dexi-os-releases/${{ steps.version.outputs.version }}/$IMG \
+            --s3-chunk-size 64M --s3-upload-concurrency 8
+
+      - name: Print download URL
+        run: |
+          IMG="dexi_raspberry_pi_os_${{ inputs.target }}.img.zip"
+          echo "::notice title=Image published::https://pub-7efc16585b2a4b5ab550489e8d8d5b33.r2.dev/${{ steps.version.outputs.version }}/$IMG"
+
+      - name: Cleanup local artifacts
+        if: always()
+        run: |
+          rm -f dexi_raspberry_pi_os_*.img.zip
+          rm -f dexi_raspberry_pi_os_*.img
+          rm -rf base_images
+          rm -f resources_raspberry_pi_os/dexi-*.tar
+          rm -f resources_raspberry_pi_os/*.px4
+          rm -f resources_raspberry_pi_os/build_version
