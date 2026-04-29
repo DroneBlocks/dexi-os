@@ -4,7 +4,7 @@ variable "target" {
 
   validation {
     condition     = contains(["cm5", "ark_cm4", "pi5"], var.target)
-    error_message = "target must be one of: cm5, ark_cm4, pi5."
+    error_message = "Target must be one of: cm5, ark_cm4, pi5."
   }
 }
 
