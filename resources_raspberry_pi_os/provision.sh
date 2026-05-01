@@ -161,6 +161,9 @@ colcon build --packages-select dexi_color_detection
 # DEXI bringup (the launch package and start.bash)
 colcon build --packages-select dexi_bringup
 
+# DEXI AprilTag corridor / precision-landing nodes (apriltag_odometry, tag_hop, precision_landing)
+colcon build --packages-select dexi_apriltag
+
 # Install DEXI service
 cd /home/dexi/dexi_ws/src/dexi_bringup/scripts
 ./install.bash
