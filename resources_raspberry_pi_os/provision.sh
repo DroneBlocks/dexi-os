@@ -244,7 +244,7 @@ cat > /usr/local/bin/dexi-hotspot-setup.sh << 'EOF'
 #!/bin/bash
 sleep 10
 PARTIAL_MAC=$(cat /sys/class/net/wlan0/address | awk -F: '{print $(NF-1)$NF}')
-DEXI_SSID="dexi_$PARTIAL_MAC"
+DEXI_SSID="dexi-$PARTIAL_MAC"
 /usr/local/bin/dexi/create_hotspot.sh "$DEXI_SSID" "droneblocks"
 systemctl disable dexi-hotspot-setup.service
 EOF
