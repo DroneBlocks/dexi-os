@@ -35,6 +35,14 @@ cat > /home/dexi/.local/share/code-server/User/settings.json << 'EOF'
 }
 EOF
 
+# Install Python extension (provides the Run button + language features).
+# Pulls in ms-python.debugpy and ms-python.vscode-python-envs as transitive deps.
+log "Installing ms-python.python extension..."
+sudo -u dexi HOME=/home/dexi code-server --install-extension ms-python.python
+
+# Make sure code-server's data dirs are owned by the dexi user
+chown -R dexi:dexi /home/dexi/.config/code-server /home/dexi/.local/share/code-server
+
 # Create systemd service file
 cat > /etc/systemd/system/code-server.service << 'EOF'
 [Unit]
