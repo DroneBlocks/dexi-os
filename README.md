@@ -57,6 +57,7 @@ Custom Raspberry Pi OS images for DEXI drone systems with pre-configured ROS2, n
   - CM4: CSI camera with libcamera
   - Pi5: USB camera support
 - **MAVLink Router**: Drone communication protocol routing
+- **mavlink2rest**: REST/WebSocket bridge on TCP `:8088` (browser GCS such as `px4-web-configurator` over LAN/hotspot; pinned to upstream 1.0.2)
 
 ### Networking & Connectivity
 - **WiFi Hotspot**: Auto-configured with MAC-based SSID (`dexi_XXXX`)

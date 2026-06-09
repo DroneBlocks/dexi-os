@@ -197,6 +197,71 @@ RestartSec=5
 EOF
 ########################################################################################
 
+#################################### mavlink2rest ####################################
+# Build mavlink2rest (REST/WebSocket bridge for MAVLink) from source in the
+# chroot. Upstream ships no prebuilt binaries, so source build is the only
+# option. Pinned to SHA 237c8899c29f84d28af02d928263558a31017f3e (tag 1.0.2)
+# for parity with the dexi-sim-ftw sim build.
+#
+# Resulting binary lives at /usr/local/bin/mavlink2rest. The toolchain
+# (rustup + cargo + ~/target) is removed at the end of this section to keep
+# the flashed image small — without cleanup the chroot would balloon ~1.5 GB.
+log "Building mavlink2rest from source (Rust)..."
+MAVLINK2REST_SHA=237c8899c29f84d28af02d928263558a31017f3e
+
+# Install rustup non-interactively into /opt so we can wipe it cleanly later.
+# Debian Bookworm's stock rustc (1.63) is too old for current mavlink2rest crates.
+quiet_run curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o /tmp/rustup-init.sh
+chmod +x /tmp/rustup-init.sh
+RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo /tmp/rustup-init.sh \
+    -y --default-toolchain stable --profile minimal --no-modify-path >/dev/null 2>&1
+
+export PATH="/opt/cargo/bin:$PATH"
+export RUSTUP_HOME=/opt/rustup
+export CARGO_HOME=/opt/cargo
+
+cd /tmp
+git clone https://github.com/mavlink/mavlink2rest.git mavlink2rest
+cd mavlink2rest
+git checkout "$MAVLINK2REST_SHA"
+cargo build --release
+strip target/release/mavlink2rest
+install -m 0755 target/release/mavlink2rest /usr/local/bin/mavlink2rest
+
+# Tear down toolchain + source — saves ~1.5 GB of chroot bloat.
+cd /home/dexi
+rm -rf /tmp/mavlink2rest /tmp/rustup-init.sh /opt/rustup /opt/cargo /root/.cargo /root/.rustup
+unset CARGO_HOME RUSTUP_HOME
+
+# Systemd unit. Runs as root (matches mavlink-router today). Connects via
+# udpout to 127.0.0.1:14770 — the dedicated loopback endpoint added in the
+# companion dexi_bringup PR. REST + WS surface is 0.0.0.0:8088 (no auth on
+# v0.20; relies on WPA on the dexi_<MAC> hotspot). After=mavlink-router so
+# the router endpoint is reachable when we come up.
+cat > /etc/systemd/system/mavlink2rest.service << 'EOF'
+[Unit]
+Description=mavlink2rest - REST/WebSocket bridge for MAVLink, exposes drone telemetry to browser GCS over LAN/Wi-Fi/AP
+Documentation=https://github.com/mavlink/mavlink2rest
+After=mavlink-router.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/mavlink2rest --connect=udpout:127.0.0.1:14770 --server=0.0.0.0:8088
+Restart=on-failure
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl enable mavlink2rest.service
+log "mavlink2rest installed at /usr/local/bin/mavlink2rest (SHA $MAVLINK2REST_SHA), service enabled"
+########################################################################################
+
 #################################### ARK companion + PX4 firmware ####################################
 # Pi 5 has no flight controller attached, skip both
 if [ "$TARGET" = "cm5" ] || [ "$TARGET" = "ark_cm4" ]; then
