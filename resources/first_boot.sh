@@ -22,7 +22,12 @@ chown -R dexi:dexi /home/dexi
 # Load DroneBlocks image from provision script since Docker isn't readily available during provisioning
 docker load < /home/dexi/docker-drag/droneblocks_dexi-droneblocks.tar
 docker load < /home/dexi/docker-drag/droneblocks_dexi-node-red.tar
-docker run -d --restart unless-stopped -p 80:3000 --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
+# --pid=host: the GCS /status page's Top Processes panel calls `top` to list
+# CPU-heavy processes; without --pid=host the container only sees its own ~4
+# PIDs (the Nuxt server) and the panel is useless for diagnosing what's
+# actually loading the Pi. With it, the panel shows host PIDs like
+# rosbridge_websocket, micro_ros_agent, camera_node, etc.
+docker run -d --restart unless-stopped --pid=host -p 80:3000 --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
 docker run -d --restart unless-stopped -p 1880:1880 -v /home/dexi/node-red-dexi/flows:/data --name dexi-node-red droneblocks/dexi-node-red:latest
 rm -rf /home/dexi/docker-drag
 
