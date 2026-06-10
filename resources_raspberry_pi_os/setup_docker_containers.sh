@@ -118,11 +118,22 @@ if docker ps --format "table {{.Names}}" | grep -q "dexi-droneblocks"; then
     echo "DEXI DroneBlocks container already running"
 else
     echo "Starting DEXI DroneBlocks container..."
-    # --pid=host: the /status page's Top Processes panel runs `top` inside the
-    # container; without host PID namespace it only sees its own ~4 PIDs (the
-    # Nuxt server) and the panel is empty. With it, the panel shows the real
-    # workload (rosbridge_websocket, micro_ros_agent, camera_node, etc.).
-    docker run -d --restart unless-stopped --pid=host -p 80:3000 \
+    # The /status page reports host system state, so the container needs to see
+    # the host's processes, network, and NetworkManager:
+    #   --pid=host        Top Processes panel runs `top`; without it the panel
+    #                     sees only the container's ~4 PIDs and shows nothing.
+    #                     With it: rosbridge_websocket, micro_ros_agent, etc.
+    #   --network host    Network panel reads /sys/class/net + os.networkInterfaces;
+    #                     without it, it sees only the docker bridge (172.17.0.x)
+    #                     instead of the real wlan0/eth0.
+    #   -v .../system_bus_socket  the panel + /api/network/switch shell out to
+    #                     nmcli, which needs the host system D-Bus to reach
+    #                     NetworkManager (saved connections, wifi mode, switching).
+    #   -e PORT=80        under --network host, `-p 80:3000` is ignored, so bind
+    #                     the Nuxt server to 80 directly to keep http://<dexi>/ working.
+    docker run -d --restart unless-stopped \
+        --pid=host --network host -e PORT=80 \
+        -v /run/dbus/system_bus_socket:/run/dbus/system_bus_socket \
         -v /proc/device-tree/model:/etc/device-model:ro \
         --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
     echo "DEXI DroneBlocks container started"
