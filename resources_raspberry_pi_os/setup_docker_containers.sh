@@ -118,7 +118,11 @@ if docker ps --format "table {{.Names}}" | grep -q "dexi-droneblocks"; then
     echo "DEXI DroneBlocks container already running"
 else
     echo "Starting DEXI DroneBlocks container..."
-    docker run -d --restart unless-stopped -p 80:3000 \
+    # --pid=host: the /status page's Top Processes panel runs `top` inside the
+    # container; without host PID namespace it only sees its own ~4 PIDs (the
+    # Nuxt server) and the panel is empty. With it, the panel shows the real
+    # workload (rosbridge_websocket, micro_ros_agent, camera_node, etc.).
+    docker run -d --restart unless-stopped --pid=host -p 80:3000 \
         -v /proc/device-tree/model:/etc/device-model:ro \
         --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
     echo "DEXI DroneBlocks container started"
