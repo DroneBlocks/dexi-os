@@ -143,7 +143,12 @@ if docker ps --format "table {{.Names}}" | grep -q "dexi-node-red"; then
     echo "DEXI Node-RED container already running"
 else
     echo "Starting DEXI Node-RED container..."
+    # --add-host=host.docker.internal:host-gateway lets the bridge-networked
+    # node-red reach rosbridge on the host (:9090) by a stable name, so the
+    # ROS2 websocket URL (ws://host.docker.internal:9090, baked into the image)
+    # keeps working regardless of the drone's LAN IP / AP-vs-network mode.
     docker run -d --restart unless-stopped -p 1880:1880 \
+        --add-host=host.docker.internal:host-gateway \
         -v /home/dexi/node-red-dexi/flows:/data \
         --name dexi-node-red droneblocks/dexi-node-red:latest
     echo "DEXI Node-RED container started"
