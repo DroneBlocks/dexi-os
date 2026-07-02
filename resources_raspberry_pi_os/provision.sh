@@ -275,7 +275,9 @@ if [ "$TARGET" = "cm5" ] || [ "$TARGET" = "ark_cm4" ]; then
 
     case "$TARGET" in
         cm5)     PX4_FIRMWARE="ark_pi6x_default_v1.16.1.px4" ;;
-        ark_cm4) PX4_FIRMWARE="ark_pi6x_default_v1.16.1-flow-fix.px4" ;;
+        # v1.16.2 merged the optical-flow fix upstream, so ark_cm4 no longer
+        # needs the separate -flow-fix variant.
+        ark_cm4) PX4_FIRMWARE="ark_pi6x_default_v1.16.2.px4" ;;
     esac
     cp /tmp/resources/$PX4_FIRMWARE /home/dexi/
     log "Staged PX4 firmware: $PX4_FIRMWARE"

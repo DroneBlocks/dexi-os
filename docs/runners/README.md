@@ -27,8 +27,8 @@ The build pulls these gitignored assets from `r2:dexi-os-releases/build-assets/`
 - `bookwork_jazzy_docker_shrinked.img.gz.xz` — pre-built Pi OS Bookworm + ROS2 Jazzy base image (~3.4GB)
 - `dexi-droneblocks.tar` — DEXI DroneBlocks Docker image
 - `dexi-node-red.tar` — DEXI Node-RED Docker image
-- `ark_pi6x_default_v1.16.1.px4` — ARK PX4 firmware (stock)
-- `ark_pi6x_default_v1.16.1-flow-fix.px4` — ARK PX4 firmware (optical-flow fix)
+- `ark_pi6x_default_v1.16.1.px4` — ARK PX4 firmware for the `cm5` target (stock)
+- `ark_pi6x_default_v1.16.2.px4` — ARK PX4 firmware for the `ark_cm4` target (optical-flow fix is merged upstream as of 1.16.2, so the separate `-flow-fix` variant is no longer needed)
 
 If the R2 bucket is ever rebuilt, repopulate from a known-good runner using `rclone copy`.
 

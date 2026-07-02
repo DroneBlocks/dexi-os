@@ -57,7 +57,7 @@ jobs:
               rclone copyto r2:dexi-os-releases/build-assets/ark_pi6x_default_v1.16.1.px4 resources_raspberry_pi_os/ark_pi6x_default_v1.16.1.px4
               ;;
             ark_cm4)
-              rclone copyto r2:dexi-os-releases/build-assets/ark_pi6x_default_v1.16.1-flow-fix.px4 resources_raspberry_pi_os/ark_pi6x_default_v1.16.1-flow-fix.px4
+              rclone copyto r2:dexi-os-releases/build-assets/ark_pi6x_default_v1.16.2.px4 resources_raspberry_pi_os/ark_pi6x_default_v1.16.2.px4
               ;;
             pi5)
               echo "pi5 target: no PX4 firmware needed"
