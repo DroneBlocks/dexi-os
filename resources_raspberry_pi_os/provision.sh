@@ -3,7 +3,11 @@
 #
 # Behavior switches on the TARGET env var (cm5 / ark_cm4 / pi5), set by
 # raspberry_pi_os.pkr.hcl via:
-#   environment_vars = ["TARGET=${var.target}"]
+#   environment_vars = ["TARGET=${var.target}", "BRINGUP_REF=${var.bringup_ref}"]
+#
+# BRINGUP_REF selects the dexi_bringup ref to clone (default "main"). Pass a
+# branch here for release-candidate builds instead of editing the clone line,
+# so a feature branch can never be left baked into a release build by accident.
 
 # Stop on build error
 #set -e
@@ -53,7 +57,8 @@ rm -rf /home/dexi/dexi_ws/*
 mkdir -p /home/dexi/dexi_ws/src
 
 cd /home/dexi/dexi_ws
-git clone -b main https://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
+log "Cloning dexi_bringup at ref: ${BRINGUP_REF:-main}"
+git clone -b "${BRINGUP_REF:-main}" https://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 

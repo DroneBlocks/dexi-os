@@ -8,6 +8,12 @@ variable "target" {
   }
 }
 
+variable "bringup_ref" {
+  description = "Git ref of dexi_bringup to clone into the image"
+  type        = string
+  default     = "main"
+}
+
 source "arm" "raspberry_pi_os" {
   file_urls             = ["file:///build/base_images/bookwork_jazzy_docker_shrinked.img.gz.xz"]
   file_checksum_type    = "none"
@@ -46,6 +52,6 @@ build {
   }
   provisioner "shell" {
     script           = "resources_raspberry_pi_os/provision.sh"
-    environment_vars = ["TARGET=${var.target}"]
+    environment_vars = ["TARGET=${var.target}", "BRINGUP_REF=${var.bringup_ref}"]
   }
 }

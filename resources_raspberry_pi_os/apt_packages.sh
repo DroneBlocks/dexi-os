@@ -19,6 +19,11 @@ install_common_packages() {
 install_camera_packages() {
     log "Installing camera packages..."
     apt install -y libcamera-dev >/dev/null 2>&1
+    # The base image ships rpicam-apps-lite 1.6.0-2 against libcamera0.5, which
+    # makes `rpicam-hello --list-cameras` report "No cameras available!" until
+    # it is upgraded by hand on every board. Pull it forward at build time.
+    apt install -y --only-upgrade rpicam-apps-lite >/dev/null 2>&1
+    log "rpicam-apps-lite: $(dpkg-query -W -f='${Version}' rpicam-apps-lite 2>/dev/null || echo 'not installed')"
     log "Camera packages installed successfully"
 }
 
