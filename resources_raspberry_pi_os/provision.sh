@@ -59,6 +59,13 @@ mkdir -p /home/dexi/dexi_ws/src
 cd /home/dexi/dexi_ws
 log "Cloning dexi_bringup at ref: ${BRINGUP_REF:-main}"
 git clone -b "${BRINGUP_REF:-main}" https://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
+# stderr is silenced and `set -e` is off, so a bad ref would otherwise clone
+# nothing and let the build finish "successfully" with an empty workspace.
+if [ ! -d /home/dexi/dexi_ws/src/dexi_bringup/.git ]; then
+    log "ERROR: dexi_bringup clone failed for ref ${BRINGUP_REF:-main}"
+    exit 1
+fi
+log "dexi_bringup at $(git -C /home/dexi/dexi_ws/src/dexi_bringup rev-parse --short HEAD)"
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
