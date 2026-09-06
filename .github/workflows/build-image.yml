@@ -39,6 +39,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: TEMPORARY disk report
+        continue-on-error: true
+        run: |
+          echo "--- df -h / ---"; df -h /
+          echo "--- free GB on Data volume ---"; df -g /System/Volumes/Data | awk 'NR==2{print $4" GB avail"}'
+          echo "--- big dirs in home ---"; du -sh ~/* 2>/dev/null | sort -rh | head -6
+          echo "--- leftovers in workspace ---"; ls -lh "$GITHUB_WORKSPACE"/*.img "$GITHUB_WORKSPACE"/*.zip 2>/dev/null || echo none
+          echo "--- RUNNER_TEMP ---"; du -sh "$RUNNER_TEMP" 2>/dev/null
+
       - name: Resolve build version
         id: version
         run: |
