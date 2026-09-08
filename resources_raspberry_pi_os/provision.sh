@@ -9,11 +9,15 @@
 # branch here for release-candidate builds instead of editing the clone line,
 # so a feature branch can never be left baked into a release build by accident.
 
-# Stop on build error
-#set -e
+# Stop on build error. The only command that returns non-zero in a healthy
+# build is `apt-get upgrade` below (apt exit 100 under the emulated chroot),
+# which is explicitly tolerated; verified by a full local build 2026-09-08.
+set -e
 
-# Redirect stderr to /dev/null to suppress verbose output, keep only echo statements
-exec 2>/dev/null
+# Keep stderr. It used to go to /dev/null, which meant a failing step left no
+# evidence at all: the code-server extension install failed silently for a
+# whole release that way. Errors now land in a log kept in the image.
+exec 2> >(tee -a /var/log/dexi-provision.log >&2)
 
 quiet_run() { "$@" >/dev/null 2>&1; }
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
@@ -40,7 +44,11 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 
 #################################### update the OS ####################################
 log "Updating system packages..."
-apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1
+apt-get update -y >/dev/null 2>&1
+# apt returns 100 in the emulated chroot even when the upgrade is fine, so this
+# one command is exempt from set -e. The status is logged rather than discarded.
+apt-get upgrade -y >/dev/null 2>&1 || log "WARN: apt-get upgrade returned $?, continuing"
+
 install_common_packages
 
 # CM4 uses pigpio for direct-PWM servo control via DMA daemon (no I2C servo HAT).
