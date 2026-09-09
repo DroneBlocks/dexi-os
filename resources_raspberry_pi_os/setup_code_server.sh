@@ -35,13 +35,18 @@ cat > /home/dexi/.local/share/code-server/User/settings.json << 'EOF'
 }
 EOF
 
+# Hand the data dirs to dexi BEFORE installing anything as that user. The
+# mkdir above runs as root, so `sudo -u dexi ... --install-extension` cannot
+# create the extensions/ subdirectory inside a root-owned tree and dies with
+# EACCES. This ordering was reversed in v0.21-rc2 and the extension silently
+# never shipped.
+chown -R dexi:dexi /home/dexi/.config/code-server /home/dexi/.local/share/code-server
+
 # Install Python extension (provides the Run button + language features).
 # Pulls in ms-python.debugpy and ms-python.vscode-python-envs as transitive deps.
 log "Installing ms-python.python extension..."
 sudo -u dexi HOME=/home/dexi code-server --install-extension ms-python.python
-
-# Make sure code-server's data dirs are owned by the dexi user
-chown -R dexi:dexi /home/dexi/.config/code-server /home/dexi/.local/share/code-server
+chown -R dexi:dexi /home/dexi/.local/share/code-server/extensions
 
 # Create systemd service file
 cat > /etc/systemd/system/code-server.service << 'EOF'
