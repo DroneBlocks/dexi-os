@@ -373,5 +373,39 @@ if [ -f /tmp/resources/build_version ]; then
     log "Embedded version: $(cat /etc/dexi-version)"
 fi
 
+#################################### image slimming ####################################
+# Provisioning leaves ~11 GB of build intermediates that nothing uses at runtime.
+# Verified on an ark_cm4 build 2026-09-09: neither install/ tree contains a single
+# symlink into build/ or src/, so both are safe to remove (colcon was not run with
+# --symlink-install).
+log "Slimming image..."
+
+# ROS 2 core: only install/ (739 MB) is used at runtime. build/ is 9.9 GB of
+# object files and CMake caches. Nobody rebuilds ROS core on the drone.
+rm -rf /home/dexi/ros2_jazzy/build /home/dexi/ros2_jazzy/log
+
+# dexi_ws/build is deliberately KEPT. Editing and rebuilding DEXI packages
+# on-device through code-server is a supported workflow, and removing it would
+# force a full rebuild on the Pi.
+
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+# Truncate build-time logs but keep our own provisioning log, which is the
+# only record of what happened during the build.
+find /var/log -type f ! -name 'dexi-provision.log' -exec truncate -s 0 {} + 2>/dev/null || true
+
+log "Slimming: $(df -h / | awk 'NR==2{print $3" used, "$4" free"}')"
+
+# Zero the free space. Without this the deletions above do not shrink the
+# published .zip at all, because freed blocks still hold their old contents.
+# dd exits non-zero when the disk fills, which is the expected outcome here and
+# must not trip set -e.
+log "Zero-filling free space..."
+dd if=/dev/zero of=/zero.fill bs=4M 2>/dev/null || true
+sync
+rm -f /zero.fill
+log "Slimming complete"
+########################################################################################
+
 chown -R dexi:dexi /home/dexi
 log "Provisioning complete for target: $TARGET"
