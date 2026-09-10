@@ -374,15 +374,21 @@ if [ -f /tmp/resources/build_version ]; then
 fi
 
 #################################### image slimming ####################################
-# Provisioning leaves ~11 GB of build intermediates that nothing uses at runtime.
-# Verified on an ark_cm4 build 2026-09-09: neither install/ tree contains a single
-# symlink into build/ or src/, so both are safe to remove (colcon was not run with
-# --symlink-install).
+# Remove build output that is genuinely unused at runtime, then zero the free
+# space so the deletions actually shrink the published image.
 log "Slimming image..."
 
-# ROS 2 core: only install/ (739 MB) is used at runtime. build/ is 9.9 GB of
-# object files and CMake caches. Nobody rebuilds ROS core on the drone.
-rm -rf /home/dexi/ros2_jazzy/build /home/dexi/ros2_jazzy/log
+# DO NOT delete /home/dexi/ros2_jazzy/build. It looks like disposable build
+# output but the ROS 2 Python packages are installed in setuptools develop
+# (editable) mode: their .egg-info metadata lives under build/<pkg>/ and the
+# pythonpath_develop.sh hooks put those directories on PYTHONPATH. Removing it
+# gives "PackageNotFoundError: No package metadata was found for ros2cli" and
+# dexi.service fails to start. Verified on a Pi 5, 2026-09-10.
+# Note the absence of symlinks from install/ into build/ does NOT mean build/
+# is safe to remove; develop-mode installs depend on it without symlinks.
+#
+# Only colcon's log output is safe here.
+rm -rf /home/dexi/ros2_jazzy/log
 
 # dexi_ws/build is deliberately KEPT. Editing and rebuilding DEXI packages
 # on-device through code-server is a supported workflow, and removing it would
