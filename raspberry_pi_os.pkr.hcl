@@ -11,7 +11,9 @@ variable "target" {
 variable "bringup_ref" {
   description = "Git ref of dexi_bringup to clone into the image"
   type        = string
-  default     = "main"
+  # Release branches default to their own ref so a build from this branch
+  # cannot silently pick up dexi_bringup main.
+  default     = "rc/v0.21"
 }
 
 source "arm" "raspberry_pi_os" {
