@@ -402,14 +402,10 @@ find /var/log -type f ! -name 'dexi-provision.log' -exec truncate -s 0 {} + 2>/d
 
 log "Slimming: $(df -h / | awk 'NR==2{print $3" used, "$4" free"}')"
 
-# Zero the free space. Without this the deletions above do not shrink the
-# published .zip at all, because freed blocks still hold their old contents.
-# dd exits non-zero when the disk fills, which is the expected outcome here and
-# must not trip set -e.
-log "Zero-filling free space..."
-dd if=/dev/zero of=/zero.fill bs=4M 2>/dev/null || true
-sync
-rm -f /zero.fill
+# No zero-fill here. The image is shrunk to fit after the build instead, which
+# achieves the same compression benefit, also shrinks the uncompressed .img,
+# and avoids forcing the sparse image file to fully allocate on the build host
+# (that cost ~9 GB of host disk per build and repeatedly filled the runner).
 log "Slimming complete"
 ########################################################################################
 
