@@ -371,5 +371,41 @@ if [ -f /tmp/resources/build_version ]; then
     log "Embedded version: $(cat /etc/dexi-version)"
 fi
 
+#################################### image slimming ####################################
+# Remove build output that is genuinely unused at runtime, then zero the free
+# space so the deletions actually shrink the published image.
+log "Slimming image..."
+
+# DO NOT delete /home/dexi/ros2_jazzy/build. It looks like disposable build
+# output but the ROS 2 Python packages are installed in setuptools develop
+# (editable) mode: their .egg-info metadata lives under build/<pkg>/ and the
+# pythonpath_develop.sh hooks put those directories on PYTHONPATH. Removing it
+# gives "PackageNotFoundError: No package metadata was found for ros2cli" and
+# dexi.service fails to start. Verified on a Pi 5, 2026-09-10.
+# Note the absence of symlinks from install/ into build/ does NOT mean build/
+# is safe to remove; develop-mode installs depend on it without symlinks.
+#
+# Only colcon's log output is safe here.
+rm -rf /home/dexi/ros2_jazzy/log
+
+# dexi_ws/build is deliberately KEPT. Editing and rebuilding DEXI packages
+# on-device through code-server is a supported workflow, and removing it would
+# force a full rebuild on the Pi.
+
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+# Truncate build-time logs but keep our own provisioning log, which is the
+# only record of what happened during the build.
+find /var/log -type f ! -name 'dexi-provision.log' -exec truncate -s 0 {} + 2>/dev/null || true
+
+log "Slimming: $(df -h / | awk 'NR==2{print $3" used, "$4" free"}')"
+
+# No zero-fill here. The image is shrunk to fit after the build instead, which
+# achieves the same compression benefit, also shrinks the uncompressed .img,
+# and avoids forcing the sparse image file to fully allocate on the build host
+# (that cost ~9 GB of host disk per build and repeatedly filled the runner).
+log "Slimming complete"
+########################################################################################
+
 chown -R dexi:dexi /home/dexi
 log "Provisioning complete for target: $TARGET"
