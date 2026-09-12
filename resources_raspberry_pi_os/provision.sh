@@ -157,17 +157,15 @@ colcon build --packages-select theora_image_transport
 colcon build --packages-select zstd_image_transport
 colcon build --packages-select image_transport_plugins
 
-# Strip the camera_ros exec_depend from apriltag_ros so it builds standalone.
-# Idempotent — does nothing if camera_ros isn't referenced. Required for Pi 5
-# (no camera_ros) and harmless on CM4/CM5 where camera_ros is also installed.
+# Strip the camera_ros exec_depend from apriltag_ros so it builds before
+# camera_ros does. Idempotent — does nothing if camera_ros isn't referenced.
 sed -i '/<exec_depend>camera_ros<\/exec_depend>/d' /home/dexi/dexi_ws/src/apriltag_ros/package.xml
 colcon build --packages-select apriltag_ros
 
-# Camera packages — CM4/CM5 use camera_ros (libcamera, CSI), Pi 5 uses dexi_camera (UVC)
-if [ "$TARGET" != "pi5" ]; then
-    install_camera_packages
-    colcon build --packages-select camera_ros
-fi
+# Camera packages — all targets get camera_ros (libcamera, CSI). Pi 5 picks
+# between camera_ros and dexi_camera at launch based on what is attached.
+install_camera_packages
+colcon build --packages-select camera_ros
 # All targets build dexi_camera (provides camera calibration files; Pi 5 also uses it as the camera node)
 colcon build --packages-select dexi_camera
 
