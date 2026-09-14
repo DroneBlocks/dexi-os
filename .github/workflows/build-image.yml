@@ -10,6 +10,7 @@ on:
         options:
           - cm5
           - ark_cm4
+          - ark_cm5
           - pi5
       version:
         description: 'Version override (leave empty to use VERSION file)'
