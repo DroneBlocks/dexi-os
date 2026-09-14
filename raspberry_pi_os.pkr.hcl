@@ -1,10 +1,10 @@
 variable "target" {
-  description = "Build target: cm5, ark_cm4, or pi5"
+  description = "Build target: cm5, ark_cm4, ark_cm5, or pi5"
   type        = string
 
   validation {
-    condition     = contains(["cm5", "ark_cm4", "pi5"], var.target)
-    error_message = "Target must be one of: cm5, ark_cm4, pi5."
+    condition     = contains(["cm5", "ark_cm4", "ark_cm5", "pi5"], var.target)
+    error_message = "Target must be one of: cm5, ark_cm4, ark_cm5, pi5."
   }
 }
 

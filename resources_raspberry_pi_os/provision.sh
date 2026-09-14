@@ -27,7 +27,7 @@ if [ -z "$TARGET" ]; then
     exit 1
 fi
 case "$TARGET" in
-    cm5|ark_cm4|pi5) ;;
+    cm5|ark_cm4|ark_cm5|pi5) ;;
     *) log "ERROR: unsupported TARGET=$TARGET"; exit 1 ;;
 esac
 
@@ -119,6 +119,15 @@ case "$TARGET" in
     cm5|pi5)
         pip install --break-system-packages pi5neo
         ;;
+    ark_cm5)
+        # ARK wires the strip to GPIO 12, which SPI1 MOSI (GPIO 20) cannot
+        # reach, so drive it over the RP1 PIO. pi5neo is kept so the same
+        # image can still use the spi backend if the strip is rewired.
+        pip install --break-system-packages pi5neo
+        pip install --break-system-packages adafruit-blinka
+        pip install --break-system-packages adafruit-circuitpython-neopixel
+        pip install --break-system-packages Adafruit-Blinka-Raspberry-Pi5-Neopixel
+        ;;
 esac
 colcon build --packages-select dexi_led
 
@@ -200,6 +209,8 @@ rm -rf mavlink-router
 mkdir -p /etc/mavlink-router
 case "$TARGET" in
     ark_cm4) MAVLINK_ROUTER_CONF="ark_cm4_main.conf" ;;
+    # Same ARK FMU over USB, so the same endpoint config.
+    ark_cm5) MAVLINK_ROUTER_CONF="ark_cm4_main.conf" ;;
     *)       MAVLINK_ROUTER_CONF="main.conf" ;;
 esac
 cp /home/dexi/dexi_ws/src/dexi_bringup/config/mavlink-router/$MAVLINK_ROUTER_CONF /etc/mavlink-router/main.conf
@@ -282,7 +293,7 @@ log "mavlink2rest installed at /usr/local/bin/mavlink2rest (SHA $MAVLINK2REST_SH
 
 #################################### ARK companion + PX4 firmware ####################################
 # Pi 5 has no flight controller attached, skip both
-if [ "$TARGET" = "cm5" ] || [ "$TARGET" = "ark_cm4" ]; then
+if [ "$TARGET" = "cm5" ] || [ "$TARGET" = "ark_cm4" ] || [ "$TARGET" = "ark_cm5" ]; then
     cd /home/dexi
     git clone https://github.com/DroneBlocks/ark_companion_scripts.git /home/dexi/ark_companion_scripts
     cd /home/dexi/ark_companion_scripts
@@ -293,6 +304,7 @@ if [ "$TARGET" = "cm5" ] || [ "$TARGET" = "ark_cm4" ]; then
 
     case "$TARGET" in
         cm5)     PX4_FIRMWARE="ark_pi6x_default_v1.16.1.px4" ;;
+        ark_cm5) PX4_FIRMWARE="ark_pi6x_default_v1.16.1.px4" ;;
         # v1.16.2 merged the optical-flow fix upstream, so ark_cm4 no longer
         # needs the separate -flow-fix variant.
         ark_cm4) PX4_FIRMWARE="ark_pi6x_default_v1.16.2.px4" ;;
@@ -406,6 +418,12 @@ log "Slimming: $(df -h / | awk 'NR==2{print $3" used, "$4" free"}')"
 # (that cost ~9 GB of host disk per build and repeatedly filled the runner).
 log "Slimming complete"
 ########################################################################################
+
+# Record the build target. start.bash reads this instead of guessing from the
+# device-tree model, which cannot tell a CM5 on the ARK carrier from a CM5 on
+# the DroneBlocks carrier.
+echo "$TARGET" > /etc/dexi-platform
+log "Platform marker: $(cat /etc/dexi-platform)"
 
 chown -R dexi:dexi /home/dexi
 log "Provisioning complete for target: $TARGET"
