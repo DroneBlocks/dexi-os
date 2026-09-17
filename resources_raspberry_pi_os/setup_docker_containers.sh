@@ -131,10 +131,26 @@ else
     #                     NetworkManager (saved connections, wifi mode, switching).
     #   -e PORT=80        under --network host, `-p 80:3000` is ignored, so bind
     #                     the Nuxt server to 80 directly to keep http://<dexi>/ working.
+    #   -v /etc/dexi-version, -v /etc/dexi-platform
+    #                     the GCS header badge reads these to report which image
+    #                     it is running on. They are host files written by the
+    #                     image build, so without the mounts the badge has no way
+    #                     to know and falls back to "version unknown".
+    #
+    # Mounted only when present. Bind-mounting a path that does not exist makes
+    # Docker create a DIRECTORY there, which leaves a bogus /etc/dexi-version on
+    # the host and makes the read fail anyway. /etc/dexi-version is absent on
+    # images built before 2026-04-28 and /etc/dexi-platform before v0.21.
+    IDENTITY_MOUNTS=""
+    for f in /etc/dexi-version /etc/dexi-platform; do
+        [ -f "$f" ] && IDENTITY_MOUNTS="$IDENTITY_MOUNTS -v $f:$f:ro"
+    done
+
     docker run -d --restart unless-stopped \
         --pid=host --network host -e PORT=80 \
         -v /run/dbus/system_bus_socket:/run/dbus/system_bus_socket \
         -v /proc/device-tree/model:/etc/device-model:ro \
+        $IDENTITY_MOUNTS \
         --name dexi-droneblocks droneblocks/dexi-droneblocks:latest
     echo "DEXI DroneBlocks container started"
 fi
