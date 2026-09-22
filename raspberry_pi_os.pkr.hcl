@@ -13,7 +13,7 @@ variable "bringup_ref" {
   type        = string
   # Release branches default to their own ref so a build from this branch
   # cannot silently pick up dexi_bringup main.
-  default     = "rc/v0.21"
+  default     = "rc/v0.22"
 }
 
 source "arm" "raspberry_pi_os" {
