@@ -10,10 +10,16 @@ on:
         options:
           - cm5
           - ark_cm4
+          - ark_cm5
           - pi5
       version:
         description: 'Version override (leave empty to use VERSION file)'
         required: false
+        type: string
+      bringup_ref:
+        description: 'dexi_bringup ref to bake in'
+        required: false
+        default: 'rc/v0.21'
         type: string
       runner_label:
         description: 'Runner to dispatch to'
@@ -59,6 +65,9 @@ jobs:
             ark_cm4)
               rclone copyto r2:dexi-os-releases/build-assets/ark_pi6x_default_v1.16.2.px4 resources_raspberry_pi_os/ark_pi6x_default_v1.16.2.px4
               ;;
+            ark_cm5)
+              rclone copyto r2:dexi-os-releases/build-assets/ark_pi6x_default_v1.16.1.px4 resources_raspberry_pi_os/ark_pi6x_default_v1.16.1.px4
+              ;;
             pi5)
               echo "pi5 target: no PX4 firmware needed"
               ;;
@@ -76,6 +85,7 @@ jobs:
             -v "$RUNNER_TEMP/packer-build:/tmp" \
             mkaczanowski/packer-builder-arm:latest build \
               -var "target=${{ inputs.target }}" \
+              -var "bringup_ref=${{ inputs.bringup_ref || 'rc/v0.21' }}" \
               ./raspberry_pi_os.pkr.hcl
 
       - name: Compress image

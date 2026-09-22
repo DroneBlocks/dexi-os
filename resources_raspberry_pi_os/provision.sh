@@ -3,13 +3,21 @@
 #
 # Behavior switches on the TARGET env var (cm5 / ark_cm4 / pi5), set by
 # raspberry_pi_os.pkr.hcl via:
-#   environment_vars = ["TARGET=${var.target}"]
+#   environment_vars = ["TARGET=${var.target}", "BRINGUP_REF=${var.bringup_ref}"]
+#
+# BRINGUP_REF selects the dexi_bringup ref to clone (default "main"). Pass a
+# branch here for release-candidate builds instead of editing the clone line,
+# so a feature branch can never be left baked into a release build by accident.
 
-# Stop on build error
-#set -e
+# Stop on build error. The only command that returns non-zero in a healthy
+# build is `apt-get upgrade` below (apt exit 100 under the emulated chroot),
+# which is explicitly tolerated; verified by a full local build 2026-09-08.
+set -e
 
-# Redirect stderr to /dev/null to suppress verbose output, keep only echo statements
-exec 2>/dev/null
+# Keep stderr. It used to go to /dev/null, which meant a failing step left no
+# evidence at all: the code-server extension install failed silently for a
+# whole release that way. Errors now land in a log kept in the image.
+exec 2> >(tee -a /var/log/dexi-provision.log >&2)
 
 quiet_run() { "$@" >/dev/null 2>&1; }
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
@@ -19,7 +27,7 @@ if [ -z "$TARGET" ]; then
     exit 1
 fi
 case "$TARGET" in
-    cm5|ark_cm4|pi5) ;;
+    cm5|ark_cm4|ark_cm5|pi5) ;;
     *) log "ERROR: unsupported TARGET=$TARGET"; exit 1 ;;
 esac
 
@@ -36,7 +44,11 @@ echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
 
 #################################### update the OS ####################################
 log "Updating system packages..."
-apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y >/dev/null 2>&1
+apt-get update -y >/dev/null 2>&1
+# apt returns 100 in the emulated chroot even when the upgrade is fine, so this
+# one command is exempt from set -e. The status is logged rather than discarded.
+apt-get upgrade -y >/dev/null 2>&1 || log "WARN: apt-get upgrade returned $?, continuing"
+
 install_common_packages
 
 # CM4 uses pigpio for direct-PWM servo control via DMA daemon (no I2C servo HAT).
@@ -53,7 +65,15 @@ rm -rf /home/dexi/dexi_ws/*
 mkdir -p /home/dexi/dexi_ws/src
 
 cd /home/dexi/dexi_ws
-git clone -b main https://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
+log "Cloning dexi_bringup at ref: ${BRINGUP_REF:-main}"
+git clone -b "${BRINGUP_REF:-main}" https://github.com/droneblocks/dexi_bringup /home/dexi/dexi_ws/src/dexi_bringup
+# stderr is silenced and `set -e` is off, so a bad ref would otherwise clone
+# nothing and let the build finish "successfully" with an empty workspace.
+if [ ! -d /home/dexi/dexi_ws/src/dexi_bringup/.git ]; then
+    log "ERROR: dexi_bringup clone failed for ref ${BRINGUP_REF:-main}"
+    exit 1
+fi
+log "dexi_bringup at $(git -C /home/dexi/dexi_ws/src/dexi_bringup rev-parse --short HEAD)"
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
@@ -99,6 +119,15 @@ case "$TARGET" in
     cm5|pi5)
         pip install --break-system-packages pi5neo
         ;;
+    ark_cm5)
+        # ARK wires the strip to GPIO 12, which SPI1 MOSI (GPIO 20) cannot
+        # reach, so drive it over the RP1 PIO. pi5neo is kept so the same
+        # image can still use the spi backend if the strip is rewired.
+        pip install --break-system-packages pi5neo
+        pip install --break-system-packages adafruit-blinka
+        pip install --break-system-packages adafruit-circuitpython-neopixel
+        pip install --break-system-packages Adafruit-Blinka-Raspberry-Pi5-Neopixel
+        ;;
 esac
 colcon build --packages-select dexi_led
 
@@ -137,17 +166,15 @@ colcon build --packages-select theora_image_transport
 colcon build --packages-select zstd_image_transport
 colcon build --packages-select image_transport_plugins
 
-# Strip the camera_ros exec_depend from apriltag_ros so it builds standalone.
-# Idempotent — does nothing if camera_ros isn't referenced. Required for Pi 5
-# (no camera_ros) and harmless on CM4/CM5 where camera_ros is also installed.
+# Strip the camera_ros exec_depend from apriltag_ros so it builds before
+# camera_ros does. Idempotent — does nothing if camera_ros isn't referenced.
 sed -i '/<exec_depend>camera_ros<\/exec_depend>/d' /home/dexi/dexi_ws/src/apriltag_ros/package.xml
 colcon build --packages-select apriltag_ros
 
-# Camera packages — CM4/CM5 use camera_ros (libcamera, CSI), Pi 5 uses dexi_camera (UVC)
-if [ "$TARGET" != "pi5" ]; then
-    install_camera_packages
-    colcon build --packages-select camera_ros
-fi
+# Camera packages — all targets get camera_ros (libcamera, CSI). Pi 5 picks
+# between camera_ros and dexi_camera at launch based on what is attached.
+install_camera_packages
+colcon build --packages-select camera_ros
 # All targets build dexi_camera (provides camera calibration files; Pi 5 also uses it as the camera node)
 colcon build --packages-select dexi_camera
 
@@ -182,6 +209,8 @@ rm -rf mavlink-router
 mkdir -p /etc/mavlink-router
 case "$TARGET" in
     ark_cm4) MAVLINK_ROUTER_CONF="ark_cm4_main.conf" ;;
+    # Same ARK FMU over USB, so the same endpoint config.
+    ark_cm5) MAVLINK_ROUTER_CONF="ark_cm4_main.conf" ;;
     *)       MAVLINK_ROUTER_CONF="main.conf" ;;
 esac
 cp /home/dexi/dexi_ws/src/dexi_bringup/config/mavlink-router/$MAVLINK_ROUTER_CONF /etc/mavlink-router/main.conf
@@ -264,7 +293,7 @@ log "mavlink2rest installed at /usr/local/bin/mavlink2rest (SHA $MAVLINK2REST_SH
 
 #################################### ARK companion + PX4 firmware ####################################
 # Pi 5 has no flight controller attached, skip both
-if [ "$TARGET" = "cm5" ] || [ "$TARGET" = "ark_cm4" ]; then
+if [ "$TARGET" = "cm5" ] || [ "$TARGET" = "ark_cm4" ] || [ "$TARGET" = "ark_cm5" ]; then
     cd /home/dexi
     git clone https://github.com/DroneBlocks/ark_companion_scripts.git /home/dexi/ark_companion_scripts
     cd /home/dexi/ark_companion_scripts
@@ -275,6 +304,7 @@ if [ "$TARGET" = "cm5" ] || [ "$TARGET" = "ark_cm4" ]; then
 
     case "$TARGET" in
         cm5)     PX4_FIRMWARE="ark_pi6x_default_v1.16.1.px4" ;;
+        ark_cm5) PX4_FIRMWARE="ark_pi6x_default_v1.16.1.px4" ;;
         # v1.16.2 merged the optical-flow fix upstream, so ark_cm4 no longer
         # needs the separate -flow-fix variant.
         ark_cm4) PX4_FIRMWARE="ark_pi6x_default_v1.16.2.px4" ;;
@@ -352,6 +382,48 @@ if [ -f /tmp/resources/build_version ]; then
     cp /tmp/resources/build_version /etc/dexi-version
     log "Embedded version: $(cat /etc/dexi-version)"
 fi
+
+#################################### image slimming ####################################
+# Remove build output that is genuinely unused at runtime, then zero the free
+# space so the deletions actually shrink the published image.
+log "Slimming image..."
+
+# DO NOT delete /home/dexi/ros2_jazzy/build. It looks like disposable build
+# output but the ROS 2 Python packages are installed in setuptools develop
+# (editable) mode: their .egg-info metadata lives under build/<pkg>/ and the
+# pythonpath_develop.sh hooks put those directories on PYTHONPATH. Removing it
+# gives "PackageNotFoundError: No package metadata was found for ros2cli" and
+# dexi.service fails to start. Verified on a Pi 5, 2026-09-10.
+# Note the absence of symlinks from install/ into build/ does NOT mean build/
+# is safe to remove; develop-mode installs depend on it without symlinks.
+#
+# Only colcon's log output is safe here.
+rm -rf /home/dexi/ros2_jazzy/log
+
+# dexi_ws/build is deliberately KEPT. Editing and rebuilding DEXI packages
+# on-device through code-server is a supported workflow, and removing it would
+# force a full rebuild on the Pi.
+
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+# Truncate build-time logs but keep our own provisioning log, which is the
+# only record of what happened during the build.
+find /var/log -type f ! -name 'dexi-provision.log' -exec truncate -s 0 {} + 2>/dev/null || true
+
+log "Slimming: $(df -h / | awk 'NR==2{print $3" used, "$4" free"}')"
+
+# No zero-fill here. The image is shrunk to fit after the build instead, which
+# achieves the same compression benefit, also shrinks the uncompressed .img,
+# and avoids forcing the sparse image file to fully allocate on the build host
+# (that cost ~9 GB of host disk per build and repeatedly filled the runner).
+log "Slimming complete"
+########################################################################################
+
+# Record the build target. start.bash reads this instead of guessing from the
+# device-tree model, which cannot tell a CM5 on the ARK carrier from a CM5 on
+# the DroneBlocks carrier.
+echo "$TARGET" > /etc/dexi-platform
+log "Platform marker: $(cat /etc/dexi-platform)"
 
 chown -R dexi:dexi /home/dexi
 log "Provisioning complete for target: $TARGET"

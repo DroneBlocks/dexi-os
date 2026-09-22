@@ -1,11 +1,19 @@
 variable "target" {
-  description = "Build target: cm5, ark_cm4, or pi5"
+  description = "Build target: cm5, ark_cm4, ark_cm5, or pi5"
   type        = string
 
   validation {
-    condition     = contains(["cm5", "ark_cm4", "pi5"], var.target)
-    error_message = "Target must be one of: cm5, ark_cm4, pi5."
+    condition     = contains(["cm5", "ark_cm4", "ark_cm5", "pi5"], var.target)
+    error_message = "Target must be one of: cm5, ark_cm4, ark_cm5, pi5."
   }
+}
+
+variable "bringup_ref" {
+  description = "Git ref of dexi_bringup to clone into the image"
+  type        = string
+  # Release branches default to their own ref so a build from this branch
+  # cannot silently pick up dexi_bringup main.
+  default     = "rc/v0.21"
 }
 
 source "arm" "raspberry_pi_os" {
@@ -46,6 +54,6 @@ build {
   }
   provisioner "shell" {
     script           = "resources_raspberry_pi_os/provision.sh"
-    environment_vars = ["TARGET=${var.target}"]
+    environment_vars = ["TARGET=${var.target}", "BRINGUP_REF=${var.bringup_ref}"]
   }
 }
