@@ -112,3 +112,8 @@ dexi-os/
 ├── build_raspberry_pi_os_*.sh     # Build scripts
 └── *.img                          # Output images
 ```
+
+## Releasing
+
+See [docs/RELEASE.md](docs/RELEASE.md) for cutting an RC, publishing a release,
+opening the next cycle, and updating the GCS or node-red container.
