@@ -8,6 +8,23 @@ Written after v0.21. Every step here exists because skipping it cost time.
 - `vX.Y` is the release. Once published the URLs are a contract, so never rebuild into that prefix afterward.
 - The `version` workflow input is both the R2 prefix and the value baked into `/etc/dexi-version`. Passing `v0.21` when you meant `v0.21-rc8` overwrites the published release.
 
+## Landing a fix in a release
+
+A release spans five repos and the milestone only lives on this one, so:
+
+1. **Open the issue here**, on the `vX.Y` milestone, whichever repo the code is
+   in. This is the only place the whole release scope is visible.
+2. **Open the PR in the repo that owns the code**, with
+   `Refs DroneBlocks/dexi-os#NN` in the body so the issue links back.
+3. **Base branch:** `rc/vX.Y` in `dexi-os` and `dexi_bringup`. `main` in
+   `node-red-dexi`, `dexi-droneblocks` and `dexi-5-motor-check`, which ship on
+   their own container and npm versions rather than the OS cycle.
+4. **Verify on hardware first** and put the measurement in the PR. A number
+   beats a description.
+5. **Say how it reaches a drone** when merging is not enough. Anything in a
+   container needs a rebuild and an R2 bridge before a board sees it, which is
+   the step most easily forgotten. See "Updating the GCS or node-red container".
+
 ## Release candidates
 
 1. Land the work on `rc/vX.Y` in dexi-os and, if launch files changed, in dexi_bringup.
