@@ -77,7 +77,15 @@ jobs:
 
       - name: Build image
         run: |
+          # packer unpacks the ~14 GB base image into this directory. It is the
+          # container's /tmp, so nothing inside the container removes it, and
+          # until now neither did cleanup: nine builds in one evening filled the
+          # runner and every target failed with "No space left on device".
+          # Clear it going in as well as on the way out, so a runner that is
+          # already full recovers on the next run instead of needing a human.
+          rm -rf "$RUNNER_TEMP/packer-build"
           mkdir -p "$RUNNER_TEMP/packer-build"
+          df -h "$RUNNER_TEMP" | tail -1
           docker run --rm --privileged \
             -v /dev:/dev \
             -v ${PWD}:/build \
@@ -115,3 +123,5 @@ jobs:
           rm -f resources_raspberry_pi_os/dexi-*.tar
           rm -f resources_raspberry_pi_os/*.px4
           rm -f resources_raspberry_pi_os/build_version
+          rm -rf "$RUNNER_TEMP/packer-build"
+          df -h "$RUNNER_TEMP" | tail -1
