@@ -52,6 +52,21 @@ jobs:
       - name: Check Docker is running
         run: docker info
 
+      # Must run before staging: the R2 copy is the first thing to need disk, so
+      # a full runner fails there and never reaches the build step's own clean.
+      - name: Reclaim disk
+        run: |
+          df -h "$RUNNER_TEMP" | tail -1
+          rm -rf "$RUNNER_TEMP/packer-build"
+          rm -f dexi_raspberry_pi_os_*.img dexi_raspberry_pi_os_*.img.zip
+          rm -rf base_images
+          # Stopped containers and build cache only. Tagged images are left
+          # alone: the packer builder and the DEXI containers live there and
+          # re-pulling them costs more than the space is worth.
+          docker container prune -f || true
+          docker builder prune -f || true
+          df -h "$RUNNER_TEMP" | tail -1
+
       - name: Stage build assets from R2
         run: |
           mkdir -p base_images resources_raspberry_pi_os
