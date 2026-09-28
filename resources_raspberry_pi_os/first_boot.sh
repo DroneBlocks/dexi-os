@@ -6,11 +6,6 @@
 # Setup DEXI ROS2 launch file to run on boot
 # /home/dexi/dexi_ws/src/dexi/scripts/install.bash
 
-# Fresh SSH host keys. provision.sh deletes the image's so every board
-# does not ship the same one.
-ssh-keygen -A
-systemctl restart ssh 2>/dev/null || true
-
 # Change dexi directory permissions
 chown -R dexi:dexi /home/dexi
 

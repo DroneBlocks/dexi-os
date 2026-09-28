@@ -436,10 +436,5 @@ log "Timezone: $(cat /etc/timezone)"
 date -u '+%Y-%m-%d %H:%M:%S' > /etc/fake-hwclock.data
 log "fake-hwclock seeded: $(cat /etc/fake-hwclock.data)"
 
-# Every board shipped the same host key, because it is baked into the image.
-# first_boot.sh regenerates them.
-rm -f /etc/ssh/ssh_host_*
-log "SSH host keys cleared"
-
 chown -R dexi:dexi /home/dexi
 log "Provisioning complete for target: $TARGET"
