@@ -54,18 +54,33 @@ jobs:
 
       # Must run before staging: the R2 copy is the first thing to need disk, so
       # a full runner fails there and never reaches the build step's own clean.
-      - name: Reclaim disk
+      - name: Reclaim disk and check headroom
         run: |
-          df -h "$RUNNER_TEMP" | tail -1
+          echo "before: $(df -h "$RUNNER_TEMP" | tail -1)"
           rm -rf "$RUNNER_TEMP/packer-build"
           rm -f dexi_raspberry_pi_os_*.img dexi_raspberry_pi_os_*.img.zip
           rm -rf base_images
-          # Stopped containers and build cache only. Tagged images are left
-          # alone: the packer builder and the DEXI containers live there and
-          # re-pulling them costs more than the space is worth.
+          # Stopped containers, dangling images and build cache. Tagged images
+          # are kept: the packer builder lives there and re-pulling it costs
+          # more than the space is worth.
           docker container prune -f || true
+          docker image prune -f || true
           docker builder prune -f || true
-          df -h "$RUNNER_TEMP" | tail -1
+          echo "after:  $(df -h "$RUNNER_TEMP" | tail -1)"
+
+          # A build needs ~70 GB transient: a 30 GB working .img, a 6.1 GB zip
+          # built beside it, packer's own ~30 GB unpack under RUNNER_TEMP, and
+          # ~3 GB of staged assets. Stop here rather than 20 minutes in with an
+          # rclone write error that says nothing about the real cause.
+          FREE_GB=$(df -g "$RUNNER_TEMP" | tail -1 | awk '{print $4}')
+          echo "free: ${FREE_GB} GB, need 80"
+          if [ "$FREE_GB" -lt 80 ]; then
+            echo "::error title=Runner out of disk::${FREE_GB} GB free, a build needs ~70 GB. Nothing this workflow owns is using it; someone needs to look at the runner."
+            df -h
+            du -xh -d1 "$HOME" 2>/dev/null | sort -h | tail -10
+            docker system df || true
+            exit 1
+          fi
 
       - name: Stage build assets from R2
         run: |
@@ -116,6 +131,10 @@ jobs:
           IMG="dexi_raspberry_pi_os_${{ inputs.target }}.img"
           zip -1 "${IMG}.zip" "$IMG"
           ls -lh "${IMG}.zip"
+          # Drop the 30 GB working image now. It is not needed again, and the
+          # upload below is the longest step in the job to be holding it for.
+          rm -f "$IMG"
+          df -h "$RUNNER_TEMP" | tail -1
 
       - name: Upload to R2
         run: |
@@ -139,4 +158,4 @@ jobs:
           rm -f resources_raspberry_pi_os/*.px4
           rm -f resources_raspberry_pi_os/build_version
           rm -rf "$RUNNER_TEMP/packer-build"
-          df -h "$RUNNER_TEMP" | tail -1
+          echo "end:    $(df -h "$RUNNER_TEMP" | tail -1)"
