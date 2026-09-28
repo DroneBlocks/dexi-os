@@ -37,6 +37,16 @@ jobs:
       - ${{ inputs.runner_label }}
 
     steps:
+      # packer runs in a privileged container as root and leaves .packer_cache
+      # in the workspace owned by root. actions/checkout runs as the runner user
+      # with clean: true, cannot remove it, and fails the job before any other
+      # step gets a chance. Must come before checkout for that reason.
+      - name: Clear root-owned packer cache
+        run: |
+          sudo rm -rf "$GITHUB_WORKSPACE/.packer_cache" 2>/dev/null \
+            || rm -rf "$GITHUB_WORKSPACE/.packer_cache" \
+            || true
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -60,6 +70,7 @@ jobs:
           rm -rf "$RUNNER_TEMP/packer-build"
           rm -f dexi_raspberry_pi_os_*.img dexi_raspberry_pi_os_*.img.zip
           rm -rf base_images
+          sudo rm -rf .packer_cache 2>/dev/null || rm -rf .packer_cache || true
           # Stopped containers, dangling images and build cache. Tagged images
           # are kept: the packer builder lives there and re-pulling it costs
           # more than the space is worth.
