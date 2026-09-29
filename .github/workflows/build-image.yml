@@ -19,7 +19,7 @@ on:
       bringup_ref:
         description: 'dexi_bringup ref to bake in'
         required: false
-        default: 'rc/v0.22'
+        default: 'rc/v0.23'
         type: string
       runner_label:
         description: 'Runner to dispatch to'
@@ -137,7 +137,7 @@ jobs:
             -v "$RUNNER_TEMP/packer-build:/tmp" \
             mkaczanowski/packer-builder-arm:latest build \
               -var "target=${{ inputs.target }}" \
-              -var "bringup_ref=${{ inputs.bringup_ref || 'rc/v0.22' }}" \
+              -var "bringup_ref=${{ inputs.bringup_ref || 'rc/v0.23' }}" \
               ./raspberry_pi_os.pkr.hcl
 
       - name: Compress image
