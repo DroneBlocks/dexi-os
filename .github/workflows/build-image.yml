@@ -66,7 +66,10 @@ jobs:
       # a full runner fails there and never reaches the build step's own clean.
       - name: Reclaim disk and check headroom
         run: |
-          echo "before: $(df -h "$RUNNER_TEMP" | tail -1)"
+          # Every volume, not just the one holding RUNNER_TEMP. When a runner
+          # fills up, the useful question is which disk and what else is
+          # mounted, and a single line cannot answer it.
+          echo "--- disk before ---"; df -h
           rm -rf "$RUNNER_TEMP/packer-build"
           rm -f dexi_raspberry_pi_os_*.img dexi_raspberry_pi_os_*.img.zip
           rm -rf base_images
@@ -77,7 +80,7 @@ jobs:
           docker container prune -f || true
           docker image prune -f || true
           docker builder prune -f || true
-          echo "after:  $(df -h "$RUNNER_TEMP" | tail -1)"
+          echo "--- disk after ---"; df -h
 
           # A build needs ~70 GB transient: a 30 GB working .img, a 6.1 GB zip
           # built beside it, packer's own ~30 GB unpack under RUNNER_TEMP, and
@@ -145,7 +148,7 @@ jobs:
           # Drop the 30 GB working image now. It is not needed again, and the
           # upload below is the longest step in the job to be holding it for.
           rm -f "$IMG"
-          df -h "$RUNNER_TEMP" | tail -1
+          df -h "$RUNNER_TEMP" | tail -1   # just the build volume here
 
       - name: Upload to R2
         run: |
@@ -169,4 +172,4 @@ jobs:
           rm -f resources_raspberry_pi_os/*.px4
           rm -f resources_raspberry_pi_os/build_version
           rm -rf "$RUNNER_TEMP/packer-build"
-          echo "end:    $(df -h "$RUNNER_TEMP" | tail -1)"
+          echo "--- disk at end ---"; df -h
