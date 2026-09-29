@@ -118,6 +118,29 @@ merged PR in dexi-droneblocks changes nothing on its own.
    the sidecar did not describe.
 4. Rebuild the images that need it.
 
+## Checking the release is actually finished
+
+```bash
+./tools/release-check.sh vX.Y
+```
+
+Run it before publishing and again after. Exit 0 means finished. Every check in
+it exists because it was missed on a real release:
+
+| check | what it caught |
+|---|---|
+| all four images published | - |
+| container tar predates every image | v0.22 shipped the v0.21 GCS container. The image loads containers from R2, not Docker Hub, so a merged PR changes nothing until the tar is refreshed AND the images rebuilt. The status page reported 91% CPU against a true 31%. |
+| build assets frozen under `vX.Y/` | skipped on v0.22, noticed only after publishing. Until it is done the release stops being rebuildable the moment the next cycle overwrites `build-assets/`. |
+| `rc/vX.Y` merged into main | missed on v0.22 in both repos. main's `provision.sh` had no timezone or fake-hwclock lines at all, so those fixes existed only on the release branch. |
+| tag exists, release published | - |
+| `dexi.repos` has no floating refs | `dexi_yolo` tracked `main` until v0.22 was already building. Twelve repos still do. |
+
+The order matters and it is the order that goes wrong: **refresh the container
+tar first, then build the images, then freeze the assets, then merge back.**
+Building before the tar refresh is silent - nothing fails, the images just carry
+the previous container.
+
 ## Verifying a download
 
 ```bash
