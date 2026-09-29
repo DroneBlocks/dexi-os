@@ -425,5 +425,16 @@ log "Slimming complete"
 echo "$TARGET" > /etc/dexi-platform
 log "Platform marker: $(cat /etc/dexi-platform)"
 
+# UTC, not the base image's Europe/London. A board in Texas was logging BST.
+ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+echo "UTC" > /etc/timezone
+log "Timezone: $(cat /etc/timezone)"
+
+# No RTC on these boards, so the clock starts at whatever fake-hwclock saved.
+# Seed it with the build date: worst case a board is behind by its shelf time,
+# instead of behind by however long the base image has existed.
+date -u '+%Y-%m-%d %H:%M:%S' > /etc/fake-hwclock.data
+log "fake-hwclock seeded: $(cat /etc/fake-hwclock.data)"
+
 chown -R dexi:dexi /home/dexi
 log "Provisioning complete for target: $TARGET"
