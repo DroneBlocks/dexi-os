@@ -117,6 +117,38 @@ case "$state" in
     *)     bad "no GitHub release for $VER" ;;
 esac
 
+# ------------------------------------------------------- next cycle open
+# Documented in RELEASE.md and skipped after both v0.21 and v0.22. Until the
+# refs move, every build still bakes the previous cycle's bringup and says
+# nothing, so work merged to main never reaches an image.
+echo
+echo "next cycle opened"
+cur=${VER#v}
+maj=${cur%%.*}; min=${cur##*.}
+NEXT="v${maj}.$((min+1))"
+version_file=$(gh api "repos/DroneBlocks/dexi-os/contents/VERSION?ref=main" \
+               --jq .content 2>/dev/null | base64 -d 2>/dev/null | tr -d '[:space:]')
+if [ "$version_file" = "$NEXT" ]; then
+    ok "VERSION on main is $NEXT"
+else
+    bad "VERSION on main is '$version_file', expected $NEXT"
+fi
+wf=$(gh api "repos/DroneBlocks/dexi-os/contents/.github/workflows/build-image.yml?ref=main" \
+     --jq .content 2>/dev/null | base64 -d 2>/dev/null)
+stale=$(printf '%s' "$wf" | grep -c "rc/$VER" || true)
+if [ "$stale" -eq 0 ]; then
+    ok "build-image.yml no longer points at rc/$VER"
+else
+    bad "build-image.yml still references rc/$VER $stale time(s) — builds bake the old bringup"
+fi
+for r in $REPOS; do
+    if gh api "repos/DroneBlocks/$r/branches/rc/$NEXT" >/dev/null 2>&1; then
+        ok "$r: rc/$NEXT exists"
+    else
+        bad "$r: rc/$NEXT not cut"
+    fi
+done
+
 # ----------------------------------------------------------- pinned deps
 # An unpinned dexi.repos means two builds of the same version can bake different
 # code. dexi_yolo tracked main until v0.22 was already being built.
