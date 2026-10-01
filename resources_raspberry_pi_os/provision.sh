@@ -77,6 +77,12 @@ log "dexi_bringup at $(git -C /home/dexi/dexi_ws/src/dexi_bringup rev-parse --sh
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
+# dexi.repos states intent ("main"); this records what actually got built.
+# vcs export walks the directory, so dexi_bringup and dexi_yolo are caught too.
+log "Writing source manifest to /etc/dexi-manifest.lock"
+vcs export --exact /home/dexi/dexi_ws/src > /etc/dexi-manifest.lock
+log "Manifest: $(grep -c 'type: git' /etc/dexi-manifest.lock) packages"
+
 #################################### boot config ####################################
 # dexi_bringup config dir uses "cm4" rather than the build target name "ark_cm4"
 case "$TARGET" in
