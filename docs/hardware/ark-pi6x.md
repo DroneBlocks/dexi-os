@@ -21,7 +21,7 @@ logic.
 
 The ring's data line is GPIO12, pin 3 of the LED Strip port.
 
-### Moving the ring to the GPIO port
+### Moving the ring to the GPIO port (ARK CM4)
 
 If the LED Strip port is damaged, wire the ring to the GPIO port instead:
 
@@ -48,8 +48,9 @@ journalctl -u dexi.service -b --no-pager | grep led_pin   # should report led_pi
 Reboot rather than restarting `dexi.service`: a service restart leaves the flight
 controller's ROS 2 link in a dead session until the next boot.
 
-On a CM4, GPIO21 is the only alternative: the LED driver can drive GPIO 10, 12, 18 or 21,
-and only 12 and 21 reach a Pi6X port. On a CM5 any GPIO works.
+This setting is for the ARK CM4; an ARK CM5 always drives the ring on GPIO12. GPIO21 is the
+only alternative on a CM4: the LED driver can drive GPIO 10, 12, 18 or 21, and only 12 and
+21 reach a Pi6X port.
 
 The GPIO port's 5 V is fused at 500 mA, against 2 A on the LED Strip port. Keep the ring at
 its default brightness, or power it from another 5 V source with the grounds tied together.
