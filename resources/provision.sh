@@ -79,12 +79,17 @@ user-data-dir: /root/.local/share/code-server
 extensions-dir: /root/.local/share/code-server/extensions
 EOF
 
-# Set dark theme as default
+# Python extension for the Run button
+code-server --install-extension ms-python.python
+
+# Dark theme by default. Workspace trust off: Restricted Mode disables the Python
+# extension, which removes the Run button.
 mkdir -p /root/.local/share/code-server/User
 cat > /root/.local/share/code-server/User/settings.json << EOF
 {
     "workbench.colorTheme": "Default Dark+",
-    "workbench.startupEditor": "none"
+    "workbench.startupEditor": "none",
+    "security.workspace.trust.enabled": false
 }
 EOF
 
