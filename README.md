@@ -53,7 +53,7 @@ Custom Raspberry Pi OS images for DEXI drone systems with pre-configured ROS2, n
 - **LED Control**:
   - CM4: Adafruit NeoPixel libraries
   - Pi5: pi5neo library
-  - ARK carrier: data pin set by `nodes.led.pin` (12, or 21 on the GPIO port). See [ARK Pi6X connectors](docs/hardware/ark-pi6x.md)
+  - ARK CM4: data pin set by `nodes.led.pin` (12, or 21 on the GPIO port). See [ARK Pi6X connectors](docs/hardware/ark-pi6x.md)
 - **Camera**:
   - CM4: CSI camera with libcamera
   - Pi5: USB camera support
