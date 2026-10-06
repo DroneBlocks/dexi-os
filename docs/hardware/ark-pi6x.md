@@ -32,7 +32,7 @@ If the LED Strip port is damaged, wire the ring to the GPIO port instead:
 | 3, 4, 5 | GPIO22 to GPIO24 | leave empty |
 | 6 | GND | GND |
 
-Then add this under `nodes:` in `/home/dexi/.dexi-config.yaml` and restart:
+Then add this under `nodes:` in `/home/dexi/.dexi-config.yaml` and reboot:
 
 ```yaml
   led:
@@ -40,9 +40,13 @@ Then add this under `nodes:` in `/home/dexi/.dexi-config.yaml` and restart:
 ```
 
 ```bash
-sudo systemctl restart dexi.service
-journalctl -u dexi.service --no-pager | grep led_pin   # should report led_pin=21
+sudo reboot
+# after it comes back:
+journalctl -u dexi.service -b --no-pager | grep led_pin   # should report led_pin=21
 ```
+
+Reboot rather than restarting `dexi.service`: a service restart leaves the flight
+controller's ROS 2 link in a dead session until the next boot.
 
 On a CM4, GPIO21 is the only alternative: the LED driver can drive GPIO 10, 12, 18 or 21,
 and only 12 and 21 reach a Pi6X port. On a CM5 any GPIO works.
