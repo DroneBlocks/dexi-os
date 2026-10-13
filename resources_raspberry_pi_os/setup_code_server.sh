@@ -26,12 +26,17 @@ user-data-dir: /home/dexi/.local/share/code-server
 extensions-dir: /home/dexi/.local/share/code-server/extensions
 EOF
 
-# Set dark theme as default
+# Dark theme by default. No Python language server: the extension falls back to
+# Jedi in code-server, which used most of a core on an ARK CM4 whenever a .py file
+# was open. The Run button does not need it. Workspace trust off: Restricted Mode
+# disables the Python extension, which removes the Run button.
 mkdir -p /home/dexi/.local/share/code-server/User
 cat > /home/dexi/.local/share/code-server/User/settings.json << 'EOF'
 {
     "workbench.colorTheme": "Default Dark+",
-    "workbench.startupEditor": "none"
+    "workbench.startupEditor": "none",
+    "python.languageServer": "None",
+    "security.workspace.trust.enabled": false
 }
 EOF
 

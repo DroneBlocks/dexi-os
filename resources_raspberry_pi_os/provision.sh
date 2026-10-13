@@ -77,6 +77,12 @@ log "dexi_bringup at $(git -C /home/dexi/dexi_ws/src/dexi_bringup rev-parse --sh
 vcs import --input /home/dexi/dexi_ws/src/dexi_bringup/dexi.repos /home/dexi/dexi_ws/src/
 source /home/dexi/ros2_jazzy/install/setup.bash
 
+# dexi.repos states intent ("main"); this records what actually got built.
+# vcs export walks the directory, so dexi_bringup and dexi_yolo are caught too.
+log "Writing source manifest to /etc/dexi-manifest.lock"
+vcs export --exact /home/dexi/dexi_ws/src > /etc/dexi-manifest.lock
+log "Manifest: $(grep -c 'type: git' /etc/dexi-manifest.lock) packages"
+
 #################################### boot config ####################################
 # dexi_bringup config dir uses "cm4" rather than the build target name "ark_cm4"
 case "$TARGET" in
@@ -375,6 +381,15 @@ if [ -f "/tmp/resources/setup_code_server.sh" ]; then
 else
     log "ERROR: Code-server setup script not found at /tmp/resources/setup_code_server.sh"
 fi
+
+# The DEXI nodes run as root and scripts in code-server run as dexi. Fast DDS shared
+# memory between the two users drops data, so a dexi script never hears back from a
+# service or topic. Forcing UDP fixes it without running scripts under sudo.
+if ! grep -q FASTDDS_BUILTIN_TRANSPORTS /home/dexi/.bashrc; then
+    sed -i '/ros2_jazzy\/install\/setup.bash/i export FASTDDS_BUILTIN_TRANSPORTS=UDPv4' /home/dexi/.bashrc
+    grep -q FASTDDS_BUILTIN_TRANSPORTS /home/dexi/.bashrc || echo 'export FASTDDS_BUILTIN_TRANSPORTS=UDPv4' >> /home/dexi/.bashrc
+fi
+log "dexi shell: Fast DDS over UDP ($(grep -c FASTDDS_BUILTIN_TRANSPORTS /home/dexi/.bashrc) line)"
 ######################################################################################
 
 # Embed build version for traceability (readable on device via `cat /etc/dexi-version`)
