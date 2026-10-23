@@ -451,5 +451,26 @@ log "Timezone: $(cat /etc/timezone)"
 date -u '+%Y-%m-%d %H:%M:%S' > /etc/fake-hwclock.data
 log "fake-hwclock seeded: $(cat /etc/fake-hwclock.data)"
 
+# Unique SSH host keys per board. Keys made here would be baked into the image
+# and shared by every board flashed from it, so a board could not be told apart
+# from another, or from anyone holding a copy of the image. Delete them and
+# generate a new set on first boot, before ssh.service starts.
+rm -f /etc/ssh/ssh_host_*
+cat > /etc/systemd/system/dexi-ssh-host-keys.service << 'EOF'
+[Unit]
+Description=Generate this board's SSH host keys
+Before=ssh.service
+ConditionPathExistsGlob=!/etc/ssh/ssh_host_*_key
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ssh-keygen -A
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl enable dexi-ssh-host-keys.service
+log "SSH host keys removed; dexi-ssh-host-keys.service generates them on first boot"
+
 chown -R dexi:dexi /home/dexi
 log "Provisioning complete for target: $TARGET"
