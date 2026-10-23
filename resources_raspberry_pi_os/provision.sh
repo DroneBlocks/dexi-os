@@ -188,8 +188,8 @@ colcon build --packages-select dexi_camera
 pip install --break-system-packages onnxruntime
 colcon build --packages-select dexi_yolo
 
-# DEXI color detection (build for all targets — was previously missing on pi5)
-colcon build --packages-select dexi_color_detection
+# DEXI vision: color detection and the bar counter (all targets)
+colcon build --packages-select dexi_vision
 
 # DEXI bringup (the launch package and start.bash)
 colcon build --packages-select dexi_bringup
