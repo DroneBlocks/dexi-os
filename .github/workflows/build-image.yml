@@ -30,6 +30,23 @@ on:
           - mac-mini-ny
           - pi5
           - hetzner-test
+  # build-release.yml calls this once per target, on a Hetzner server it made
+  # for that target and labeled hetzner-<run id>-<target>.
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+      bringup_ref:
+        required: false
+        default: 'rc/v0.24'
+        type: string
+      runner_label:
+        required: true
+        type: string
 
 jobs:
   build:
