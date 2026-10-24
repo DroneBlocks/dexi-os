@@ -58,6 +58,13 @@ jobs:
           echo "Building target=${{ inputs.target }} version=$VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "$VERSION" > resources_raspberry_pi_os/build_version
+          # The dexi_bringup commit this build bakes in, checked against the image
+          # after the build. A ref that is already a commit SHA is used as is.
+          REF="${{ inputs.bringup_ref || 'rc/v0.24' }}"
+          SHA=$(git ls-remote https://github.com/droneblocks/dexi_bringup "$REF" "refs/heads/$REF" "refs/tags/$REF" | head -1 | cut -f1)
+          [ -z "$SHA" ] && SHA="$REF"
+          echo "dexi_bringup $REF = $SHA"
+          echo "bringup_sha=$SHA" >> "$GITHUB_OUTPUT"
 
       - name: Check Docker is running
         run: docker info
@@ -139,6 +146,11 @@ jobs:
               -var "target=${{ inputs.target }}" \
               -var "bringup_ref=${{ inputs.bringup_ref || 'rc/v0.24' }}" \
               ./raspberry_pi_os.pkr.hcl
+
+      # A build can succeed and still produce an image whose ROS stack never
+      # starts. Check the image before anything is published.
+      - name: Verify image
+        run: tools/verify-image.sh "dexi_raspberry_pi_os_${{ inputs.target }}.img" "${{ inputs.target }}" "${{ steps.version.outputs.bringup_sha }}"
 
       - name: Compress image
         run: |
