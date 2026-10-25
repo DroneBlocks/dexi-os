@@ -1,0 +1,20 @@
+name: Delete stray Hetzner build servers
+
+# Backstop for build-release.yml: if a run's teardown never ran (GitHub outage,
+# runner crash), its servers would bill until someone noticed. A full build
+# takes about 40 minutes, so anything over 3 hours is stray.
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+jobs:
+  reap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete build servers older than 3 hours
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+        run: python3 tools/hetzner/builders.py reap 3

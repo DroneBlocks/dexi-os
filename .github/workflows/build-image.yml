@@ -29,6 +29,23 @@ on:
         options:
           - mac-mini-ny
           - pi5
+  # build-release.yml calls this once per target, on a Hetzner server it made
+  # for that target and labeled hetzner-<run id>-<target>.
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+      bringup_ref:
+        required: false
+        default: 'rc/v0.24'
+        type: string
+      runner_label:
+        required: true
+        type: string
 
 jobs:
   build:
@@ -93,7 +110,8 @@ jobs:
           # built beside it, packer's own ~30 GB unpack under RUNNER_TEMP, and
           # ~3 GB of staged assets. Stop here rather than 20 minutes in with an
           # rclone write error that says nothing about the real cause.
-          FREE_GB=$(df -g "$RUNNER_TEMP" | tail -1 | awk '{print $4}')
+          # -Pk is the same on macOS and Linux; -g is macOS only.
+          FREE_GB=$(df -Pk "$RUNNER_TEMP" | tail -1 | awk '{print int($4 / 1048576)}')
           echo "free: ${FREE_GB} GB, need 80"
           if [ "$FREE_GB" -lt 80 ]; then
             echo "::error title=Runner out of disk::${FREE_GB} GB free, a build needs ~70 GB. Nothing this workflow owns is using it; someone needs to look at the runner."

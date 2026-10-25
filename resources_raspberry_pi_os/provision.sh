@@ -37,9 +37,15 @@ log "Provisioning DEXI-OS for target: $TARGET"
 source /tmp/resources/apt_packages.sh
 
 ############################## set up the build process ##############################
-# do this so apt has a dns resolver
+# Give apt a DNS resolver that answers from any build host. In the base image
+# /etc/resolv.conf is a plain file, not a link to the systemd stub, and it holds
+# the ISP resolvers of the network the base was made on (209.18.47.x). Those
+# time out from a Hetzner builder, and every apt download hung. NetworkManager
+# rewrites the file on the board's first boot.
 mkdir -p /run/systemd/resolve
 echo 'nameserver 1.1.1.1' > /run/systemd/resolve/stub-resolv.conf
+rm -f /etc/resolv.conf
+printf 'nameserver 1.1.1.1\nnameserver 8.8.8.8\n' > /etc/resolv.conf
 #######################################################################################
 
 #################################### update the OS ####################################

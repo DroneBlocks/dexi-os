@@ -1,0 +1,72 @@
+name: Build DEXI-OS Release (parallel, Hetzner)
+
+# One Hetzner ARM server per target, all targets at once. Each server runs one
+# build-image.yml job and is deleted when the run ends, pass, fail or cancel.
+# reap-builders.yml catches any server a run failed to delete.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'R2 prefix and baked version, e.g. v0.24-rc2 (leave empty to use VERSION)'
+        required: false
+        type: string
+      bringup_ref:
+        description: 'dexi_bringup ref to bake in'
+        required: false
+        default: 'rc/v0.24'
+        type: string
+      targets:
+        description: 'Targets, space separated'
+        required: false
+        default: 'cm5 ark_cm4 ark_cm5 pi5'
+        type: string
+
+concurrency:
+  group: build-release-${{ inputs.version }}
+
+jobs:
+  servers:
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.targets.outputs.json }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: targets
+        run: echo "json=$(echo '${{ inputs.targets }}' | jq -Rc 'split(" ") | map(select(. != ""))')" >> "$GITHUB_OUTPUT"
+      - name: Create one build server per target
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+          RUNNER_ADMIN_TOKEN: ${{ secrets.RUNNER_ADMIN_TOKEN }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+        run: python3 tools/hetzner/builders.py create ${{ github.run_id }} ${{ inputs.targets }}
+      - name: Wait for every server's runner
+        env:
+          RUNNER_ADMIN_TOKEN: ${{ secrets.RUNNER_ADMIN_TOKEN }}
+        run: python3 tools/hetzner/builders.py wait ${{ github.run_id }} ${{ inputs.targets }}
+
+  build:
+    needs: servers
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.servers.outputs.targets) }}
+    uses: ./.github/workflows/build-image.yml
+    with:
+      target: ${{ matrix.target }}
+      version: ${{ inputs.version }}
+      bringup_ref: ${{ inputs.bringup_ref }}
+      runner_label: hetzner-${{ github.run_id }}-${{ matrix.target }}
+
+  teardown:
+    needs: [servers, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete this run's build servers
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+        run: python3 tools/hetzner/builders.py delete ${{ github.run_id }}
