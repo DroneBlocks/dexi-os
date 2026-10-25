@@ -29,7 +29,6 @@ on:
         options:
           - mac-mini-ny
           - pi5
-          - hetzner-test
   # build-release.yml calls this once per target, on a Hetzner server it made
   # for that target and labeled hetzner-<run id>-<target>.
   workflow_call:
