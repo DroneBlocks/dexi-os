@@ -4,13 +4,20 @@ name: Build DEXI-OS Release (parallel, Hetzner)
 # build-image.yml job and is deleted when the run ends, pass, fail or cancel.
 # reap-builders.yml catches any server a run failed to delete.
 
+run-name: "${{ inputs.final && 'FINAL ' || '' }}${{ inputs.version || 'next RC' }}: ${{ inputs.targets }}"
+
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'R2 prefix and baked version, e.g. v0.24-rc2 (leave empty to use VERSION)'
+        description: 'Leave empty for the next RC (from VERSION and what is on R2). Or type one, e.g. v0.24-rc3'
         required: false
         type: string
+      final:
+        description: 'Final release: builds the plain version from VERSION (e.g. v0.24) instead of an RC'
+        required: false
+        default: false
+        type: boolean
       bringup_ref:
         description: 'dexi_bringup ref to bake in'
         required: false
@@ -22,16 +29,62 @@ on:
         default: 'cm5 ark_cm4 ark_cm5 pi5'
         type: string
 
+# One release build at a time, so two runs never pick the same RC number.
 concurrency:
-  group: build-release-${{ inputs.version }}
+  group: build-release
 
 jobs:
   servers:
     runs-on: ubuntu-latest
     outputs:
       targets: ${{ steps.targets.outputs.json }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+      - name: Pick the version
+        id: version
+        env:
+          REQUESTED: ${{ inputs.version }}
+          FINAL: ${{ inputs.final }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BASE=$(tr -d '[:space:]' < VERSION)
+          PREFIXES=$(aws s3api list-objects-v2 --bucket dexi-os-releases --delimiter / \
+              --endpoint-url "$R2_ENDPOINT" --query 'CommonPrefixes[].Prefix' --output text \
+              | tr '\t' '\n' | tr -d /)
+          if [ -n "$REQUESTED" ]; then
+            V=$REQUESTED
+          elif [ "$FINAL" = true ]; then
+            V=$BASE
+          else
+            N=$(echo "$PREFIXES" | sed -nE "s/^${BASE//./\\.}-rc([0-9]+)$/\1/p" | sort -n | tail -1)
+            V="$BASE-rc$(( ${N:-0} + 1 ))"
+          fi
+
+          # A plain version (v0.24, v0.24.1) is the release itself. Build one only
+          # on purpose, and never into a release that is already published:
+          # its download links are a contract.
+          if [[ "$V" =~ ^v[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            if [ "$FINAL" != true ]; then
+              echo "::error::$V is a release version. Tick 'Final release' to build it, or leave version empty for the next RC."
+              exit 1
+            fi
+            if [ "$(gh release view "$V" --repo "$GITHUB_REPOSITORY" --json isDraft -q .isDraft 2>/dev/null)" = false ]; then
+              echo "::error::$V is already published. Its images must not change; build $V.1 or the next RC instead."
+              exit 1
+            fi
+          elif [ "$FINAL" = true ]; then
+            echo "::error::'Final release' needs a release version like $BASE, not $V."
+            exit 1
+          fi
+
+          echo "Building $V (VERSION is $BASE; RCs on R2: $(echo "$PREFIXES" | grep -c "^$BASE-rc" || true))"
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "### Building $V" >> "$GITHUB_STEP_SUMMARY"
       - id: targets
         run: echo "json=$(echo '${{ inputs.targets }}' | jq -Rc 'split(" ") | map(select(. != ""))')" >> "$GITHUB_OUTPUT"
       - name: Create one build server per target
@@ -56,7 +109,7 @@ jobs:
     uses: ./.github/workflows/build-image.yml
     with:
       target: ${{ matrix.target }}
-      version: ${{ inputs.version }}
+      version: ${{ needs.servers.outputs.version }}
       bringup_ref: ${{ inputs.bringup_ref }}
       runner_label: hetzner-${{ github.run_id }}-${{ matrix.target }}
 
