@@ -19,7 +19,7 @@ on:
       bringup_ref:
         description: 'dexi_bringup ref to bake in'
         required: false
-        default: 'rc/v0.24'
+        default: 'rc/v0.25'
         type: string
       runner_label:
         description: 'Runner to dispatch to'
@@ -41,7 +41,7 @@ on:
         type: string
       bringup_ref:
         required: false
-        default: 'rc/v0.24'
+        default: 'rc/v0.25'
         type: string
       runner_label:
         required: true
@@ -77,7 +77,7 @@ jobs:
           echo "$VERSION" > resources_raspberry_pi_os/build_version
           # The dexi_bringup commit this build bakes in, checked against the image
           # after the build. A ref that is already a commit SHA is used as is.
-          REF="${{ inputs.bringup_ref || 'rc/v0.24' }}"
+          REF="${{ inputs.bringup_ref || 'rc/v0.25' }}"
           SHA=$(git ls-remote https://github.com/droneblocks/dexi_bringup "$REF" "refs/heads/$REF" "refs/tags/$REF" | head -1 | cut -f1)
           [ -z "$SHA" ] && SHA="$REF"
           echo "dexi_bringup $REF = $SHA"
@@ -162,7 +162,7 @@ jobs:
             -v "$RUNNER_TEMP/packer-build:/tmp" \
             mkaczanowski/packer-builder-arm:latest build \
               -var "target=${{ inputs.target }}" \
-              -var "bringup_ref=${{ inputs.bringup_ref || 'rc/v0.24' }}" \
+              -var "bringup_ref=${{ inputs.bringup_ref || 'rc/v0.25' }}" \
               ./raspberry_pi_os.pkr.hcl
 
       # A build can succeed and still produce an image whose ROS stack never

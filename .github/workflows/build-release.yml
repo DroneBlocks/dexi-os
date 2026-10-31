@@ -21,7 +21,7 @@ on:
       bringup_ref:
         description: 'dexi_bringup ref to bake in'
         required: false
-        default: 'rc/v0.24'
+        default: 'rc/v0.25'
         type: string
       targets:
         description: 'Targets, space separated'
