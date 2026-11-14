@@ -1,0 +1,76 @@
+name: Boot-test a published image (Hetzner)
+
+# Boots an image that is already on R2 with tools/boot-test.sh, on a throwaway
+# Hetzner ARM server, and checks its services start. Use it on an RC before
+# flashing a board, or to bisect which release broke a service.
+
+run-name: "Boot test ${{ inputs.version || 'v0.24.1-rc1' }} ${{ inputs.target || 'ark_cm4' }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release folder on R2, e.g. v0.24.1-rc1'
+        required: true
+        default: 'v0.24.1-rc1'
+        type: string
+      target:
+        description: 'Target: ark_cm4, ark_cm5, cm5 or pi5'
+        required: true
+        default: 'ark_cm4'
+        type: string
+
+env:
+  VERSION: ${{ inputs.version || 'v0.24.1-rc1' }}
+  TARGET: ${{ inputs.target || 'ark_cm4' }}
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create a test server
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+          RUNNER_ADMIN_TOKEN: ${{ secrets.RUNNER_ADMIN_TOKEN }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+        run: python3 tools/hetzner/builders.py create ${{ github.run_id }} $TARGET
+      - name: Wait for its runner
+        env:
+          RUNNER_ADMIN_TOKEN: ${{ secrets.RUNNER_ADMIN_TOKEN }}
+        run: python3 tools/hetzner/builders.py wait ${{ github.run_id }} $TARGET
+
+  boot-test:
+    needs: server
+    runs-on: [self-hosted, "hetzner-${{ github.run_id }}-${{ inputs.target || 'ark_cm4' }}"]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the image
+        run: |
+          IMG=dexi_raspberry_pi_os_$TARGET.img
+          rclone copyto "r2:dexi-os-releases/$VERSION/$IMG.zip" "$IMG.zip"
+          unzip -q "$IMG.zip" && rm "$IMG.zip"
+          ls -lh "$IMG"
+      - name: Boot test
+        run: sudo REPORT=boot-test/$TARGET tools/boot-test.sh dexi_raspberry_pi_os_$TARGET.img $TARGET
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-test-${{ env.VERSION }}-${{ env.TARGET }}
+          path: boot-test/
+          if-no-files-found: ignore
+
+  teardown:
+    needs: [server, boot-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete the test server
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+        run: python3 tools/hetzner/builders.py delete ${{ github.run_id }}
