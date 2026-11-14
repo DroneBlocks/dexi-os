@@ -170,6 +170,23 @@ jobs:
       - name: Verify image
         run: tools/verify-image.sh "dexi_raspberry_pi_os_${{ inputs.target }}.img" "${{ inputs.target }}" "${{ steps.version.outputs.bringup_sha }}"
 
+      # Boot the image in a container and check its services start. Needs a
+      # Linux host with systemd (the Hetzner builders), so the Mac runner
+      # skips it. Report-only until its list of hardware-only failures has
+      # been checked on every target.
+      - name: Boot test
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: sudo REPORT=boot-test/${{ inputs.target }} tools/boot-test.sh "dexi_raspberry_pi_os_${{ inputs.target }}.img" "${{ inputs.target }}"
+
+      - name: Upload boot test logs
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-test-${{ inputs.target }}
+          path: boot-test/
+          if-no-files-found: ignore
+
       - name: Compress image
         run: |
           IMG="dexi_raspberry_pi_os_${{ inputs.target }}.img"
