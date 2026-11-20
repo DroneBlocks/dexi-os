@@ -12,6 +12,8 @@ install_common_packages() {
     apt remove modemmanager -y >/dev/null 2>&1
     apt install -y libtheora-dev >/dev/null 2>&1
     apt install -y meson ninja-build pkg-config gcc g++ systemd python3-cbor2 >/dev/null 2>&1
+    # ffmpeg: dexi_capture_media encodes its video recordings with it
+    apt install -y ffmpeg >/dev/null 2>&1
     log "Common apt packages installed successfully"
 }
 

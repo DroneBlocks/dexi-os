@@ -197,6 +197,9 @@ colcon build --packages-select dexi_yolo
 # DEXI vision: color detection and the bar counter (all targets)
 colcon build --packages-select dexi_vision
 
+# DEXI capture media: photos/video from the GCS or an RC switch (needs ffmpeg, px4_msgs)
+colcon build --packages-select dexi_capture_media
+
 # DEXI bringup (the launch package and start.bash)
 colcon build --packages-select dexi_bringup
 

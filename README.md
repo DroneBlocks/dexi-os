@@ -48,6 +48,7 @@ Custom Raspberry Pi OS images for DEXI drone systems with pre-configured ROS2, n
 - **Micro-ROS Agent**: Microcontroller communication
 - **Computer Vision**: AprilTag detection, camera support, YOLO object detection
 - **Custom DEXI packages**: Interfaces, LED control, camera, C++ core
+- **Photo and video capture**: `dexi_capture_media`, from the GCS or an RC switch, saved to `/home/dexi/dexi_media` and served on `:8090`
 
 ### Hardware Support
 - **LED Control**:
