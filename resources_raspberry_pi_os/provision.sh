@@ -236,6 +236,20 @@ ExecStart=/usr/bin/mavlink-routerd --syslog
 Restart=on-failure
 RestartSec=5
 EOF
+
+# ARK targets reach the FMU over USB, so order the router after its serial device.
+# Without this it starts first, fails "No such file or directory" and only comes
+# up on the 5 s restart. If the FMU is absent, systemd starts the router anyway
+# once the device job times out.
+case "$TARGET" in
+    ark_cm4|ark_cm5)
+        cat > /etc/systemd/system/mavlink-router.service.d/10-wait-for-fc.conf << 'EOF'
+[Unit]
+Wants=dev-serial-by\x2did-usb\x2dARK_ARK_Pi6X.x_0\x2dif00.device
+After=dev-serial-by\x2did-usb\x2dARK_ARK_Pi6X.x_0\x2dif00.device
+EOF
+        ;;
+esac
 ########################################################################################
 
 #################################### mavlink2rest ####################################
