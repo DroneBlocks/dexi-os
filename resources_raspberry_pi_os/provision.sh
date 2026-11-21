@@ -192,6 +192,8 @@ colcon build --packages-select dexi_camera
 
 # DEXI yolo
 pip install --break-system-packages onnxruntime
+# NCNN: optional dexi_yolo backend (fp16 on ARM), selected by nodes.yolo.backend
+pip install --break-system-packages ncnn
 colcon build --packages-select dexi_yolo
 
 # DEXI vision: color detection and the bar counter (all targets)
