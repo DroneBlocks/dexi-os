@@ -99,6 +99,18 @@ log "Writing $BOOT_CONFIG_DIR boot config to /boot/config.txt and /boot/cmdline.
 cat /home/dexi/dexi_ws/src/dexi_bringup/config/$BOOT_CONFIG_DIR/config.txt > /boot/config.txt
 cat /home/dexi/dexi_ws/src/dexi_bringup/config/$BOOT_CONFIG_DIR/cmdline.txt > /boot/cmdline.txt
 
+# CPU governor: Raspberry Pi OS forces ondemand at boot with
+# /lib/udev/rules.d/60-ondemand-governor.rules, which overrides
+# cpufreq.default_governor on the kernel command line. When the platform's
+# cmdline.txt asks for a governor, install a same-named rule in /etc (which
+# replaces the /lib one) so that governor sticks.
+GOV=$(grep -o 'cpufreq.default_governor=[a-z]*' /boot/cmdline.txt | cut -d= -f2)
+if [ -n "$GOV" ]; then
+    log "CPU governor from cmdline.txt: $GOV (overriding 60-ondemand-governor.rules)"
+    echo "KERNEL==\"cpu*\", SUBSYSTEM==\"cpu\", ATTR{cpufreq/scaling_governor}=\"$GOV\"" \
+        > /etc/udev/rules.d/60-ondemand-governor.rules
+fi
+
 ########################### enable i2c module #########################################
 echo "i2c-dev" >> /etc/modules
 #######################################################################################
@@ -192,6 +204,8 @@ colcon build --packages-select dexi_camera
 
 # DEXI yolo
 pip install --break-system-packages onnxruntime
+# NCNN: optional dexi_yolo backend (fp16 on ARM), selected by nodes.yolo.backend
+pip install --break-system-packages ncnn
 colcon build --packages-select dexi_yolo
 
 # DEXI vision: color detection and the bar counter (all targets)
